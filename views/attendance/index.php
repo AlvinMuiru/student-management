@@ -21,13 +21,14 @@ $this->params['breadcrumbs'][] = $this->title;
         ['class' => 'yii\grid\SerialColumn'],
         'id',
         [
-            'attribute' => 'student_name',
-            'value' => function($model) {
-                return $model->student->first_name . ' ' . $model->student->last_name;
-            },
-            'filter' => Html::activeTextInput($searchModel, 'student_name', ['class' => 'form-control']),
-            'label' => 'Student Name'
-        ],
+    'attribute' => 'student_name',
+    'value' => function($model) {
+        return $model->student ? ($model->student->first_name . ' ' . $model->student->last_name) : 'N/A';
+    },
+    'filter' => Html::activeTextInput($searchModel, 'student_name', ['class' => 'form-control']),
+    'label' => 'Student Name'
+],
+
         [
             'attribute' => 'class_name',
             'value' => 'class.class_name',

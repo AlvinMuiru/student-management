@@ -95,4 +95,37 @@ public function getFullName()
 {
     return $this->first_name . ' ' . $this->last_name;
 }
+
+
+public function getAttendanceSummary()
+{
+    $summary = [];
+    
+    foreach ($this->classes as $class) {
+        $total = $this->getAttendances()
+            ->where(['class_id' => $class->id])
+            ->count();
+            
+        $present = $this->getAttendances()
+            ->where(['class_id' => $class->id, 'status' => 'present'])
+            ->count();
+            
+        $absent = $total - $present;
+        $percentage = $total > 0 ? ($present / $total) * 100 : 0;
+        
+        $summary[] = [
+            'class_id' => $class->id,
+            'class_name' => $class->class_name,
+            'present_count' => $present,
+            'absent_count' => $absent,
+            'attendance_percentage' => $percentage,
+        ];
+    }
+    
+    return $summary;
+}
+public function getUser()
+{
+    return $this->hasOne(User::className(), ['id' => 'user_id']);
+}
 }

@@ -36,28 +36,43 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         'brandUrl' => Yii::$app->homeUrl,
         'options' => ['class' => 'navbar-expand-md navbar-dark bg-dark fixed-top']
     ]);
+
+    $menuItems = [
+        ['label' => 'Home', 'url' => ['/site/index']],
+        ['label' => 'About', 'url' => ['/site/about']],
+        ['label' => 'Contact', 'url' => ['/site/contact']],
+    ];
+
+    if (!Yii::$app->user->isGuest) {
+        // Show student dashboard if logged-in user is a student
+        if (Yii::$app->user->identity->isStudent()) {
+            $menuItems[] = ['label' => 'Dashboard', 'url' => ['/dashboard/index']];
+        }
+
+        // Shared menu for logged-in users
+        $menuItems[] = ['label' => 'Students', 'url' => ['/student/index']];
+        $menuItems[] = ['label' => 'Classes', 'url' => ['/class-model/index']];
+        $menuItems[] = ['label' => 'Attendance', 'url' => ['/attendance/index']];
+        $menuItems[] = ['label' => 'Teachers', 'url' => ['/teacher/index']];
+
+        // Logout button
+        $menuItems[] = '<li class="nav-item">'
+            . Html::beginForm(['/site/logout'], 'post', ['class' => 'd-inline'])
+            . Html::submitButton(
+                'Logout (' . Yii::$app->user->identity->username . ')',
+                ['class' => 'nav-link btn btn-link logout', 'style' => 'padding: 0']
+            )
+            . Html::endForm()
+            . '</li>';
+    } else {
+        $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
+    }
+
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav'],
-        'items' => [
-            ['label' => 'Home', 'url' => ['/site/index']],
-            ['label' => 'About', 'url' => ['/site/about']],
-            ['label' => 'Contact', 'url' => ['/site/contact']],
-            ['label' => 'Students', 'url' => ['/student/index']],
-            ['label' => 'Classes', 'url' => ['/class-model/index']],
-            ['label' => 'Attendance', 'url' => ['/attendance/index']],
-            ['label' => 'Teachers', 'url' => ['/teacher/index']],
-            Yii::$app->user->isGuest
-                ? ['label' => 'Login', 'url' => ['/site/login']]
-                : '<li class="nav-item">'
-                    . Html::beginForm(['/site/logout'])
-                    . Html::submitButton(
-                        'Logout (' . Yii::$app->user->identity->username . ')',
-                        ['class' => 'nav-link btn btn-link logout']
-                    )
-                    . Html::endForm()
-                    . '</li>'
-        ]
+        'items' => $menuItems,
     ]);
+
     NavBar::end();
     ?>
 </header>

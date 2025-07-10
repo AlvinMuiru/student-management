@@ -69,6 +69,8 @@ class SiteController extends Controller
      *
      * @return Response|string
      */
+   
+
     public function actionLogin()
     {
         if (!Yii::$app->user->isGuest) {
@@ -77,6 +79,10 @@ class SiteController extends Controller
 
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
+            // Redirect students to dashboard
+            if (Yii::$app->user->identity->isStudent()) {
+                return $this->redirect(['dashboard/index']);
+            }
             return $this->goBack();
         }
 
