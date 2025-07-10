@@ -43,30 +43,40 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         ['label' => 'Contact', 'url' => ['/site/contact']],
     ];
 
-    if (!Yii::$app->user->isGuest) {
-        // Show student dashboard if logged-in user is a student
-        if (Yii::$app->user->identity->isStudent()) {
-            $menuItems[] = ['label' => 'Dashboard', 'url' => ['/dashboard/index']];
-        }
+if (!Yii::$app->user->isGuest) {
+    $role = Yii::$app->user->identity->role;
 
-        // Shared menu for logged-in users
-        $menuItems[] = ['label' => 'Students', 'url' => ['/student/index']];
+    // Role-based menu
+    if ($role === 'student') {
+        $menuItems[] = ['label' => 'Dashboard', 'url' => ['/dashboard/index']];
+    }
+
+    if ($role === 'teacher') {
         $menuItems[] = ['label' => 'Classes', 'url' => ['/class-model/index']];
         $menuItems[] = ['label' => 'Attendance', 'url' => ['/attendance/index']];
-        $menuItems[] = ['label' => 'Teachers', 'url' => ['/teacher/index']];
-
-        // Logout button
-        $menuItems[] = '<li class="nav-item">'
-            . Html::beginForm(['/site/logout'], 'post', ['class' => 'd-inline'])
-            . Html::submitButton(
-                'Logout (' . Yii::$app->user->identity->username . ')',
-                ['class' => 'nav-link btn btn-link logout', 'style' => 'padding: 0']
-            )
-            . Html::endForm()
-            . '</li>';
-    } else {
-        $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
     }
+
+    if ($role === 'admin') {
+        $menuItems[] = ['label' => 'Students', 'url' => ['/student/index']];
+        $menuItems[] = ['label' => 'Teachers', 'url' => ['/teacher/index']];
+        $menuItems[] = ['label' => 'Classes', 'url' => ['/class-model/index']];
+        $menuItems[] = ['label' => 'Attendance', 'url' => ['/attendance/index']];
+    }
+
+    // Logout
+    $menuItems[] = '<li class="nav-item">'
+        . Html::beginForm(['/site/logout'], 'post', ['class' => 'd-inline'])
+        . Html::submitButton(
+            'Logout (' . Yii::$app->user->identity->username . ')',
+            ['class' => 'nav-link btn btn-link logout', 'style' => 'padding: 0']
+        )
+        . Html::endForm()
+        . '</li>';
+} else {
+    $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
+    $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
+}
+
 
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav'],

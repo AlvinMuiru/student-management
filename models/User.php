@@ -43,10 +43,12 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->auth_key === $authKey;
     }
 
-    public function validatePassword($password)
-    {
-        return $this->password === $password; // plain text for testing only
-    }
+   
+public function validatePassword($password)
+{
+    return Yii::$app->security->validatePassword($password, $this->password_hash);
+}
+
 
     public function isStudent()
     {
@@ -56,4 +58,14 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return $this->hasOne(Students::class, ['user_id' => 'id']);
     }
+    public function generateAuthKey()
+{
+    $this->auth_key = Yii::$app->security->generateRandomString();
+}
+public function setPassword($password)
+{
+    $this->password_hash = Yii::$app->security->generatePasswordHash($password);
+}
+
+
 }
