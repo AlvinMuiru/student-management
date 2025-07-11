@@ -26,11 +26,14 @@ class Teacher extends ActiveRecord
     public function rules()
     {
         return [
-            [['first_name', 'last_name'], 'required'],
-            [['email'], 'email'],
-            [['phone'], 'string', 'max' => 20],
-            [['first_name', 'last_name'], 'string', 'max' => 50],
-        ];
+        [['user_id', 'first_name'], 'required'], // ❗only first_name required
+        [['last_name', 'email', 'phone'], 'safe'], // ✅ allow these to be optional
+        [['user_id'], 'unique'],
+        [['user_id'], 'integer'],
+        [['first_name', 'last_name'], 'string', 'max' => 255],
+        [['email'], 'email'],
+        [['phone'], 'string', 'max' => 20],
+    ];
     }
 
     public function getClasses()
@@ -43,4 +46,8 @@ public function getfullName()
 {
     return $this->first_name . ' ' . $this->last_name;
 }
+public function getUser()
+    {
+        return $this->hasOne(User::class, ['id' => 'user_id']);
+    }
 }

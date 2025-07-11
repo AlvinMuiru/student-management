@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use yii\base\Model;
 use app\models\Students;
+use app\models\Teacher;
 
 
 class SignupForm extends Model
@@ -68,6 +69,26 @@ class SignupForm extends Model
                     Yii::error('Failed to save student: ' . json_encode($student->getErrors()));
                 }
             }
+
+            // If the role is teacher, create teacher record
+if ($user->role === 'teacher') {
+    
+        $teacher = new \app\models\Teacher();
+        $teacher->user_id = $user->id;
+        $teacher->first_name = $user->username;  // You can update later
+        $teacher->last_name = '';                // Optional
+        $teacher->email = '';                    // Optional
+        $teacher->phone = '';                    // Optional
+
+        if (!$teacher->save()) {
+            Yii::error('Failed to create teacher: ' . json_encode($teacher->getErrors()), __METHOD__);
+        } else {
+            Yii::info("Teacher record created for user ID = {$user->id}", __METHOD__);
+        }
+    
+}
+
+
 
             return $user;
         } else {

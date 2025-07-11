@@ -77,19 +77,7 @@ class TeacherController extends Controller
      */
     public function actionCreate()
     {
-        $model = new Teacher();
-
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
-        } else {
-            $model->loadDefaultValues();
-        }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
+        throw new \yii\web\ForbiddenHttpException('Teachers must sign up to be created automatically.');
     }
 
     /**

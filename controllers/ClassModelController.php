@@ -1,20 +1,19 @@
 <?php
 
 namespace app\controllers;
-use app\models\Students;
-use app\models\ClassAssignment; 
-use app\models\ClassModel;
-use yii\data\ActiveDataProvider;
+
+use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-use app\models\Teacher; 
-use yii\helpers\ArrayHelper; 
-use Yii; 
+use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
 
-/**
- * ClassController implements the CRUD actions for ClassModel model.
- */
+use app\models\ClassModel;
+use app\models\ClassAssignment;
+use app\models\Students;
+use app\models\Teacher;
+
 class ClassModelController extends Controller
 {
     public function behaviors()
@@ -23,7 +22,7 @@ class ClassModelController extends Controller
             parent::behaviors(),
             [
                 'verbs' => [
-                    'class' => VerbFilter::className(),
+                    'class' => VerbFilter::class,
                     'actions' => [
                         'delete' => ['POST'],
                     ],
@@ -53,7 +52,14 @@ class ClassModelController extends Controller
     public function actionCreate()
     {
         $model = new ClassModel();
-        $teachers = Teacher::find()->all();
+
+        $userId = Yii::$app->user->id;
+        $isAdmin = Yii::$app->user->can('admin');
+
+        $teachers = $isAdmin
+            ? Teacher::find()->all()
+            : Teacher::find()->where(['user_id' => $userId])->all();
+
         $allStudents = Students::find()->all();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
@@ -76,16 +82,16 @@ class ClassModelController extends Controller
                 return $this->redirect(['view', 'id' => $model->id]);
             } catch (\Exception $e) {
                 $transaction->rollBack();
-                Yii::$app->session->setFlash('error', 'Class saved but enrollments failed: '.$e->getMessage());
+                Yii::$app->session->setFlash('error', 'Class saved but enrollments failed: ' . $e->getMessage());
             }
         }
 
         return $this->render('create', [
             'model' => $model,
-            'teachers' => ArrayHelper::map($teachers, 'id', function($teacher) {
+            'teachers' => ArrayHelper::map($teachers, 'id', function ($teacher) {
                 return $teacher->first_name . ' ' . $teacher->last_name;
             }),
-            'allStudents' => ArrayHelper::map($allStudents, 'id', function($student) {
+            'allStudents' => ArrayHelper::map($allStudents, 'id', function ($student) {
                 return $student->first_name . ' ' . $student->last_name;
             })
         ]);
@@ -94,7 +100,14 @@ class ClassModelController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
-        $teachers = Teacher::find()->all();
+
+        $userId = Yii::$app->user->id;
+        $isAdmin = Yii::$app->user->can('admin');
+
+        $teachers = $isAdmin
+            ? Teacher::find()->all()
+            : Teacher::find()->where(['user_id' => $userId])->all();
+
         $allStudents = Students::find()->all();
 
         $model->enrolledStudents = ArrayHelper::getColumn($model->students, 'id');
@@ -128,10 +141,10 @@ class ClassModelController extends Controller
 
         return $this->render('update', [
             'model' => $model,
-            'teachers' => ArrayHelper::map($teachers, 'id', function($teacher) {
+            'teachers' => ArrayHelper::map($teachers, 'id', function ($teacher) {
                 return $teacher->first_name . ' ' . $teacher->last_name;
             }),
-            'allStudents' => ArrayHelper::map($allStudents, 'id', function($student) {
+            'allStudents' => ArrayHelper::map($allStudents, 'id', function ($student) {
                 return $student->first_name . ' ' . $student->last_name;
             })
         ]);
@@ -177,13 +190,13 @@ class ClassModelController extends Controller
                 return $this->redirect(['view', 'id' => $id]);
             } catch (\Exception $e) {
                 $transaction->rollBack();
-                Yii::$app->session->setFlash('error', 'Enrollment failed: '.$e->getMessage());
+                Yii::$app->session->setFlash('error', 'Enrollment failed: ' . $e->getMessage());
             }
         }
 
         return $this->render('enroll', [
             'class' => $class,
-            'allStudents' => ArrayHelper::map($allStudents, 'id', function($student) {
+            'allStudents' => ArrayHelper::map($allStudents, 'id', function ($student) {
                 return $student->first_name . ' ' . $student->last_name;
             }),
             'currentStudents' => ArrayHelper::getColumn($class->students, 'id')
