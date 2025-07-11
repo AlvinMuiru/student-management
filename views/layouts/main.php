@@ -19,6 +19,7 @@ $this->registerMetaTag(['name' => 'description', 'content' => $this->params['met
 $this->registerMetaTag(['name' => 'keywords', 'content' => $this->params['meta_keywords'] ?? '']);
 $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii::getAlias('@web/favicon.ico')]);
 ?>
+
 <?php $this->beginPage() ?>
 <!DOCTYPE html>
 <html lang="<?= Yii::$app->language ?>" class="h-100">
@@ -43,40 +44,39 @@ $this->registerLinkTag(['rel' => 'icon', 'type' => 'image/x-icon', 'href' => Yii
         ['label' => 'Contact', 'url' => ['/site/contact']],
     ];
 
-if (!Yii::$app->user->isGuest) {
-    $role = Yii::$app->user->identity->role;
+    if (!Yii::$app->user->isGuest) {
+        $role = Yii::$app->user->identity->role;
 
-    // Role-based menu
-    if ($role === 'student') {
-        $menuItems[] = ['label' => 'Dashboard', 'url' => ['/dashboard/index']];
+        if ($role === 'student') {
+            $menuItems[] = ['label' => 'Dashboard', 'url' => ['/dashboard/index']];
+        }
+
+        if ($role === 'teacher') {
+            $menuItems[] = ['label' => 'Dashboard', 'url' => ['/teacher-dashboard/index']];
+            $menuItems[] = ['label' => 'Classes', 'url' => ['/class-model/index']];
+            $menuItems[] = ['label' => 'Attendance', 'url' => ['/attendance/index']];
+        }
+
+        if ($role === 'admin') {
+            $menuItems[] = ['label' => 'Students', 'url' => ['/student/index']];
+            $menuItems[] = ['label' => 'Teachers', 'url' => ['/teacher/index']];
+            $menuItems[] = ['label' => 'Classes', 'url' => ['/class-model/index']];
+            $menuItems[] = ['label' => 'Attendance', 'url' => ['/attendance/index']];
+        }
+
+        // Logout button
+        $menuItems[] = '<li class="nav-item">'
+            . Html::beginForm(['/site/logout'], 'post', ['class' => 'd-inline'])
+            . Html::submitButton(
+                'Logout (' . Yii::$app->user->identity->username . ')',
+                ['class' => 'nav-link btn btn-link logout', 'style' => 'padding: 0']
+            )
+            . Html::endForm()
+            . '</li>';
+    } else {
+        $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
+        $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
     }
-
-    if ($role === 'teacher') {
-        $menuItems[] = ['label' => 'Classes', 'url' => ['/class-model/index']];
-        $menuItems[] = ['label' => 'Attendance', 'url' => ['/attendance/index']];
-    }
-
-    if ($role === 'admin') {
-        $menuItems[] = ['label' => 'Students', 'url' => ['/student/index']];
-        $menuItems[] = ['label' => 'Teachers', 'url' => ['/teacher/index']];
-        $menuItems[] = ['label' => 'Classes', 'url' => ['/class-model/index']];
-        $menuItems[] = ['label' => 'Attendance', 'url' => ['/attendance/index']];
-    }
-
-    // Logout
-    $menuItems[] = '<li class="nav-item">'
-        . Html::beginForm(['/site/logout'], 'post', ['class' => 'd-inline'])
-        . Html::submitButton(
-            'Logout (' . Yii::$app->user->identity->username . ')',
-            ['class' => 'nav-link btn btn-link logout', 'style' => 'padding: 0']
-        )
-        . Html::endForm()
-        . '</li>';
-} else {
-    $menuItems[] = ['label' => 'Login', 'url' => ['/site/login']];
-    $menuItems[] = ['label' => 'Signup', 'url' => ['/site/signup']];
-}
-
 
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav'],
