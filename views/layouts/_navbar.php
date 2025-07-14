@@ -14,8 +14,12 @@ use yii\helpers\Html;
                     Html::endForm()
                 ?>
             <?php else: ?>
+                <li class="nav-item">
                 <?= Html::a('Login', ['/site/login'], ['class' => 'nav-link']) ?>
+            </li>
+            <li class="nav-item">
                 <?= Html::a('Register', ['/site/signup'], ['class' => 'nav-link']) ?>
+            </li>
 
             <?php endif; ?>
         </li>

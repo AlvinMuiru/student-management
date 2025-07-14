@@ -71,25 +71,34 @@ class SiteController extends Controller
      * @return Response|string
      */
     public function actionLogin()
-    {
-        if (!Yii::$app->user->isGuest) {
-            return $this->goHome();
-        }
-
-        $model = new LoginForm();
-        if ($model->load(Yii::$app->request->post()) && $model->login()) {
-            // Redirect students to dashboard
-            if (Yii::$app->user->identity->isStudent()) {
-                return $this->redirect(['dashboard/index']);
-            }
-            return $this->goBack();
-        }
-
-        $model->password = '';
-        return $this->render('login', [
-            'model' => $model,
-        ]);
+{
+    if (!Yii::$app->user->isGuest) {
+        return $this->goHome();
     }
+
+    $model = new LoginForm();
+    if ($model->load(Yii::$app->request->post()) && $model->login()) {
+        $auth = Yii::$app->authManager;
+        $roles = $auth->getRolesByUser(Yii::$app->user->id);
+        $roleName = key($roles); // Get first role name
+
+        switch ($roleName) {
+            case 'admin':
+                return $this->redirect(['/admin/index']);
+            case 'teacher':
+                return $this->redirect(['/teacher-dashboard/index']);
+            case 'student':
+                return $this->redirect(['/dashboard/index']);
+            default:
+                return $this->goBack(); // fallback
+        }
+    }
+
+    $model->password = '';
+    return $this->render('login', [
+        'model' => $model,
+    ]);
+}
 
     /**
      * Logout action.
