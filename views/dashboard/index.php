@@ -4,103 +4,98 @@ use yii\helpers\Html;
 use yii\widgets\DetailView;
 use yii\grid\GridView;
 
-/* @var $this yii\web\View */
-/* @var $student app\models\Students */
+/** @var $this yii\web\View */
+/** @var $student app\models\Students */
 
 $this->title = 'Student Dashboard - ' . $student->fullName;
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+
 <div class="dashboard-index">
+    <div class="content">
+        <div class="container-fluid">
 
-    <h1><?= Html::encode($this->title) ?></h1>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Personal Information</h3>
+            <div class="row">
+                <!-- Personal Information -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <?= DetailView::widget([
+                                'model' => $student,
+                                'attributes' => [
+                                    'first_name',
+                                    'last_name',
+                                    'birthdate:date',
+                                    'email:email',
+                                    'phone',
+                                    'address',
+                                ],
+                            ]) ?>
+                            <?= Html::a('Update Information', ['student/update', 'id' => $student->id], ['class' => 'btn btn-primary mt-2']) ?>
+                        </div>
+                    </div>
                 </div>
-                <div class="panel-body">
-                    <?= DetailView::widget([
-                        'model' => $student,
-                        'attributes' => [
-                            'first_name',
-                            'last_name',
-                            'birthdate:date',
-                            'email:email',
-                            'phone',
-                            'address',
-                        ],
-                    ]) ?>
-                    
-                    <?= Html::a('Update Information', ['student/update', 'id' => $student->id], ['class' => 'btn btn-primary']) ?>
+
+                <!-- Attendance Summary -->
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Attendance Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <?= GridView::widget([
+                                'dataProvider' => new \yii\data\ArrayDataProvider([
+                                    'allModels' => $student->getAttendanceSummary(),
+                                    'pagination' => false,
+                                ]),
+                                'columns' => [
+                                    ['attribute' => 'class_name', 'label' => 'Class'],
+                                    ['attribute' => 'present_count', 'label' => 'Present'],
+                                    ['attribute' => 'absent_count', 'label' => 'Absent'],
+                                    [
+                                        'attribute' => 'attendance_percentage',
+                                        'label' => 'Percentage',
+                                        'value' => fn($model) =>
+                                            Yii::$app->formatter->asPercent($model['attendance_percentage'] / 100),
+                                    ],
+                                ],
+                            ]) ?>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-6">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Attendance Summary</h3>
-                </div>
-                <div class="panel-body">
-                    <?= GridView::widget([
-                        'dataProvider' => new \yii\data\ArrayDataProvider([
-                            'allModels' => $student->getAttendanceSummary(),
-                            'pagination' => false,
-                        ]),
-                        'columns' => [
-                            [
-                                'attribute' => 'class_name',
-                                'label' => 'Class',
-                            ],
-                            [
-                                'attribute' => 'present_count',
-                                'label' => 'Present',
-                            ],
-                            [
-                                'attribute' => 'absent_count',
-                                'label' => 'Absent',
-                            ],
-                            [
-                                'attribute' => 'attendance_percentage',
-                                'label' => 'Percentage',
-                                'value' => function($model) {
-                                    return Yii::$app->formatter->asPercent($model['attendance_percentage'] / 100);
-                                },
-                            ],
-                        ],
-                    ]); ?>
+            <!-- Class Schedule -->
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Class Schedule</h5>
+                        </div>
+                        <div class="card-body">
+                            <?= GridView::widget([
+                                'dataProvider' => new \yii\data\ActiveDataProvider([
+                                    'query' => $student->getClasses(),
+                                    'pagination' => false,
+                                ]),
+                                'columns' => [
+                                    'class_name',
+                                    [
+                                        'attribute' => 'teacher_name',
+                                        'value' => fn($model) =>
+                                            $model->teacher ? $model->teacher->fullName : 'N/A',
+                                    ],
+                                    'schedule',
+                                ],
+                            ]) ?>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <h3 class="panel-title">Class Schedule</h3>
-                </div>
-                <div class="panel-body">
-                    <?= GridView::widget([
-                        'dataProvider' => new \yii\data\ActiveDataProvider([
-                            'query' => $student->getClasses(),
-                            'pagination' => false,
-                        ]),
-                        'columns' => [
-                            'class_name',
-                            [
-                                'attribute' => 'teacher_name',
-                                'value' => function($model) {
-                                    return $model->teacher ? $model->teacher->fullName : 'N/A';
-                                },
-                            ],
-                            'schedule',
-                        ],
-                    ]); ?>
-                </div>
-            </div>
         </div>
     </div>
 </div>

@@ -15,8 +15,8 @@ class ComposerStaticInit7309b9d2e4518ad52988e780a875afc0
         'ec07570ca5a812141189b1fa81503674' => __DIR__ . '/..' . '/phpunit/phpunit/src/Framework/Assert/Functions.php',
         '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         'b6b991a57620e2fb6b2f66f03fe9ddc2' => __DIR__ . '/..' . '/symfony/string/Resources/functions.php',
-        '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
+        '667aeda72477189d0494fecd327c3641' => __DIR__ . '/..' . '/symfony/var-dumper/Resources/functions/dump.php',
         '801c31d8ed748cfa537fa45402288c95' => __DIR__ . '/..' . '/psy/psysh/src/functions.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
         'e3b2795a8a512b6083af088fb53afe6c' => __DIR__ . '/..' . '/codeception/codeception/functions.php',
@@ -33,7 +33,13 @@ class ComposerStaticInit7309b9d2e4518ad52988e780a875afc0
             'yii\\debug\\' => 10,
             'yii\\composer\\' => 13,
             'yii\\bootstrap5\\' => 15,
+            'yii\\bootstrap4\\' => 15,
             'yii\\' => 4,
+        ),
+        'h' => 
+        array (
+            'hail812\\adminlte\\widgets\\' => 25,
+            'hail812\\adminlte3\\' => 18,
         ),
         'c' => 
         array (
@@ -126,9 +132,22 @@ class ComposerStaticInit7309b9d2e4518ad52988e780a875afc0
         array (
             0 => __DIR__ . '/..' . '/yiisoft/yii2-bootstrap5/src',
         ),
+        'yii\\bootstrap4\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-bootstrap4/src',
+        ),
         'yii\\' => 
         array (
             0 => __DIR__ . '/..' . '/yiisoft/yii2',
+        ),
+        'hail812\\adminlte\\widgets\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/hail812/yii2-adminlte-widgets/src',
+        ),
+        'hail812\\adminlte3\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/hail812/yii2-adminlte3/src',
+            1 => __DIR__ . '/..' . '/hail812/yii2-adminlte3/src',
         ),
         'cebe\\markdown\\' => 
         array (
