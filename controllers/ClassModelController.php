@@ -33,7 +33,8 @@ class ClassModelController extends Controller
         );
     }
 
-    public function actionIndex()
+    
+      public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
             'query' => ClassModel::find(),
@@ -43,6 +44,7 @@ class ClassModelController extends Controller
             'dataProvider' => $dataProvider,
         ]);
     }
+
 
     public function actionView($id)
     {

@@ -52,5 +52,14 @@ class RetakeRequest extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
         ];
     }
+    public function getStudent()
+{
+    return $this->hasOne(Students::class, ['id' => 'student_id']);
+}
+
+public function getGrade()
+{
+    return $this->hasOne(Grade::class, ['id' => 'grade_id']);
+}
 
 }

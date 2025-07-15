@@ -18,8 +18,14 @@ use yii\helpers\Url;
                             <?= Html::a('Student Dashboard', ['/dashboard/index'], ['class' => 'nav-link']) ?>
                         </li>
                          <li class="nav-item">
-        <?= Html::a('<i class="nav-icon fas fa-clipboard"></i> <p>My Grades</p>', ['/grade/index'], ['class' => 'nav-link']) ?>
-    </li>
+                             <?= Html::a('<i class="nav-icon fas fa-clipboard"></i> <p>My Grades</p>', ['/grade/index'], ['class' => 'nav-link']) ?>
+                          </li>
+                          <li class="nav-item">
+                            <?= Html::a('My Retake Requests', ['/retake-request/my-requests'], ['class' => 'nav-link']) ?>
+
+                          </li>
+                         
+
 
                     <?php elseif (Yii::$app->user->identity->role === 'teacher'): ?>
                         <li class="nav-item">
@@ -30,6 +36,10 @@ use yii\helpers\Url;
                         </li>
                         <li class="nav-item">
                             <?= Html::a('Mark Attendance', ['/attendance/index'], ['class' => 'nav-link']) ?>
+                        </li>
+                        <li class="nav-item">
+                           <?= Html::a('Retake Requests', ['/retake-request/index'], ['class' => 'nav-link']) ?>
+
                         </li>
 
                     <?php elseif (Yii::$app->user->identity->role === 'admin'): ?>
@@ -47,6 +57,10 @@ use yii\helpers\Url;
                         </li>
                         <li class="nav-item">
                             <?= Html::a('Attendance', ['/attendance/index'], ['class' => 'nav-link']) ?>
+                        </li>
+                        <li class="nav-item">
+                            <?= Html::a('Retake Requests', ['/retake-request/index'], ['class' => 'nav-link']) ?>
+
                         </li>
                     <?php endif; ?>
                 <?php endif; ?>
