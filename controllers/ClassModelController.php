@@ -13,6 +13,8 @@ use app\models\ClassModel;
 use app\models\ClassAssignment;
 use app\models\Students;
 use app\models\Teacher;
+use app\models\forms\AssignGradeForm;
+use app\models\Grade;
 
 class ClassModelController extends Controller
 {
@@ -202,4 +204,41 @@ class ClassModelController extends Controller
             'currentStudents' => ArrayHelper::getColumn($class->students, 'id')
         ]);
     }
+    
+public function actionAssignGrade($classId)
+{
+    $class = $this->findModel($classId);
+
+    if (!Yii::$app->user->can('admin') && $class->teacher_id !== Yii::$app->user->identity->teacher->id) {
+        throw new \yii\web\ForbiddenHttpException("You are not allowed to assign grades for this class.");
+    }
+
+    $form = new AssignGradeForm();
+    $students = $class->students;
+
+    if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+
+        $grade = new Grade();
+        $grade->student_id = $form->student_id;
+        $grade->class_id = $classId;
+        $grade->score = $form->score;
+        $grade->passed = $form->score >= 50 ? 1 : 0; // Boolean-safe value
+
+        if ($grade->save()) {
+            Yii::$app->session->setFlash('success', '✅ Grade assigned successfully.');
+            return $this->redirect(['view', 'id' => $classId]);
+        } else {
+            // Log and show errors
+            Yii::error($grade->getErrors(), 'grade_save_error');
+            Yii::$app->session->setFlash('error', '❌ Failed to save grade: ' . json_encode($grade->getErrors()));
+        }
+    }
+
+    return $this->render('assign-grade', [
+        'model' => $form,
+        'class' => $class,
+        'students' => $students,
+    ]);
+}
+
 }

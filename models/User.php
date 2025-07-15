@@ -66,6 +66,10 @@ public function setPassword($password)
 {
     $this->password_hash = Yii::$app->security->generatePasswordHash($password);
 }
+public function getTeacher()
+{
+    return $this->hasOne(Teacher::class, ['user_id' => 'id']);
+}
 
 
 }

@@ -1,6 +1,7 @@
 <?php
 use yii\helpers\Html;
 use yii\helpers\Url;
+
 ?>
 
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -16,7 +17,9 @@ use yii\helpers\Url;
                         <li class="nav-item">
                             <?= Html::a('Student Dashboard', ['/dashboard/index'], ['class' => 'nav-link']) ?>
                         </li>
-                        
+                         <li class="nav-item">
+        <?= Html::a('<i class="nav-icon fas fa-clipboard"></i> <p>My Grades</p>', ['/grade/index'], ['class' => 'nav-link']) ?>
+    </li>
 
                     <?php elseif (Yii::$app->user->identity->role === 'teacher'): ?>
                         <li class="nav-item">

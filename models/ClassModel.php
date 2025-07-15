@@ -80,5 +80,11 @@ class ClassModel extends \yii\db\ActiveRecord
     return $this->hasMany(Students::className(), ['id' => 'student_id'])
         ->viaTable('class_assignments', ['class_id' => 'id']);
 }
+public function getGrades()
+{
+    return $this->hasMany(Grade::class, ['class_id' => 'id']);
+}
+
+
 
 }
