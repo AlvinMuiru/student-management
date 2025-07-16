@@ -24,6 +24,10 @@ use yii\helpers\Url;
                             <?= Html::a('My Retake Requests', ['/retake-request/my-requests'], ['class' => 'nav-link']) ?>
 
                           </li>
+                          <li  class="nav-item">
+                            <?= Html::a('My Fees', ['/student-fee/index']) ?>
+                          </li>
+
                          
 
 
@@ -60,7 +64,9 @@ use yii\helpers\Url;
                         </li>
                         <li class="nav-item">
                             <?= Html::a('Retake Requests', ['/retake-request/index'], ['class' => 'nav-link']) ?>
-
+                        </li>    
+                        <li class="nav-item">
+                              <?= Html::a('Manage Fees', ['/fees/index']) ?>
                         </li>
                     <?php endif; ?>
                 <?php endif; ?>
