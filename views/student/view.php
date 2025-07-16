@@ -32,12 +32,15 @@ $this->params['breadcrumbs'][] = $this->title;
             'id',
             'first_name',
             'last_name',
-            'birthdate',
-            'address:ntext',
-            'phone',
-            'email:email',
-            'created_at',
-            'updated_at',
+            'email',
+            // Add this line to show the course name
+            [
+                'label' => 'Course',
+                'value' => function ($model) {
+                    return $model->course ? $model->course->name : 'Not Assigned';
+                }
+            ],
+            'reg_no',
         ],
     ]) ?>
 

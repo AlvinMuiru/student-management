@@ -2,7 +2,11 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
-$this->title = "Enroll Students in ".$class->class_name;
+/** @var \app\models\ClassModel $class */
+/** @var array $allStudents - [id => "Full Name"] */
+/** @var array $currentStudents - list of student IDs already enrolled */
+
+$this->title = "Enroll Students in " . $class->class_name;
 ?>
 
 <div class="class-model-enroll">
@@ -12,21 +16,21 @@ $this->title = "Enroll Students in ".$class->class_name;
     
     <div class="form-group">
         <?= Html::label('Select Students', 'students') ?>
-        <?= Html::dropDownList('students', 
-            $currentStudents, 
-            $allStudents,
-            [
-                'multiple' => true, 
-                'class' => 'form-control',
-                'size' => 15
-            ]
-        ) ?>
+         <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; background-color: #f9f9f9;">
+    <?= Html::checkboxList('students', $currentStudents, $allStudents, [
+        'separator' => '<br>',
+        'itemOptions' => ['class' => 'form-check-input']
+    ]) ?>
+</div>
+
+
+        
     </div>
 
     <div class="form-group">
         <?= Html::submitButton('Save Enrollments', ['class' => 'btn btn-success']) ?>
         <?= Html::a('Cancel', ['view', 'id' => $class->id], ['class' => 'btn btn-default']) ?>
     </div>
-    
+
     <?php ActiveForm::end(); ?>
 </div>

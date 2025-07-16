@@ -3,6 +3,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\helpers\ArrayHelper;
 use app\models\Students;
+use app\models\Courses;
 
 /** @var yii\web\View $this */
 /** @var app\models\ClassModel $model */
@@ -22,7 +23,11 @@ use app\models\Students;
         </div>
         <div class="panel-body">
             <?= $form->field($model, 'class_name')->textInput(['maxlength' => true]) ?>
-     
+            
+<?= $form->field($model, 'course_id')->dropDownList(
+    ArrayHelper::map(Courses::find()->all(), 'id', 'name'),
+    ['prompt' => 'Select Course']
+) ?>
         
 
            <?= $form->field($model, 'teacher_id')->dropDownList(
@@ -34,27 +39,7 @@ use app\models\Students;
         </div>
     </div>
 
-    <!-- Student Enrollment Section -->
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h3 class="panel-title">Enroll Students</h3>
-        </div>
-        <div class="panel-body">
-            <?= $form->field($model, 'enrolledStudents')->checkboxList(
-    $allStudents,
-    [
-        'item' => function($index, $label, $name, $checked, $value) {
-            return '<div class="checkbox">' .
-                Html::checkbox($name, $checked, [
-                    'value' => $value,
-                    'label' => $label,
-                ]) .
-                               '</div>';
-                    }
-                ]
-            )->label(false) ?>
-        </div>
-    </div>
+
 
     <!-- Timestamps (hidden if not needed) -->
     <?= $form->field($model, 'created_at')->hiddenInput()->label(false) ?>

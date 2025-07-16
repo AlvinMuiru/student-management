@@ -15,6 +15,8 @@ use app\models\Students;
 use app\models\Teacher;
 use app\models\forms\AssignGradeForm;
 use app\models\Grade;
+use app\models\Courses;
+
 
 class ClassModelController extends Controller
 {
@@ -53,54 +55,53 @@ class ClassModelController extends Controller
         ]);
     }
 
-    public function actionCreate()
-    {
-        $model = new ClassModel();
+  public function actionCreate()
+{
+    $model = new ClassModel();
 
-        $userId = Yii::$app->user->id;
-        $isAdmin = Yii::$app->user->can('admin');
+    $userId = Yii::$app->user->id;
+    $isAdmin = Yii::$app->user->can('admin');
 
-        $teachers = $isAdmin
-            ? Teacher::find()->all()
-            : Teacher::find()->where(['user_id' => $userId])->all();
+    $teachers = $isAdmin
+        ? Teacher::find()->all()
+        : Teacher::find()->where(['user_id' => $userId])->all();
 
-        $allStudents = Students::find()->all();
+    // ✅ Fetch all courses
+    $courses = Courses::find()->all();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            $enrolledStudents = Yii::$app->request->post('ClassModel')['enrolledStudents'] ?? [];
+    if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        $enrolledStudents = Yii::$app->request->post('ClassModel')['enrolledStudents'] ?? [];
 
-            $transaction = Yii::$app->db->beginTransaction();
-            try {
-                foreach ($enrolledStudents as $studentId) {
-                    $enrollment = new ClassAssignment([
-                        'class_id' => $model->id,
-                        'student_id' => $studentId,
-                        'date_assigned' => date('Y-m-d')
-                    ]);
-                    if (!$enrollment->save()) {
-                        throw new \Exception('Failed to save enrollment');
-                    }
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            foreach ($enrolledStudents as $studentId) {
+                $enrollment = new ClassAssignment([
+                    'class_id' => $model->id,
+                    'student_id' => $studentId,
+                    'date_assigned' => date('Y-m-d')
+                ]);
+                if (!$enrollment->save()) {
+                    throw new \Exception('Failed to save enrollment');
                 }
-                $transaction->commit();
-                Yii::$app->session->setFlash('success', 'Class created with student enrollments!');
-                return $this->redirect(['view', 'id' => $model->id]);
-            } catch (\Exception $e) {
-                $transaction->rollBack();
-                Yii::$app->session->setFlash('error', 'Class saved but enrollments failed: ' . $e->getMessage());
             }
+            $transaction->commit();
+            Yii::$app->session->setFlash('success', 'Class created with student enrollments!');
+            return $this->redirect(['view', 'id' => $model->id]);
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            Yii::$app->session->setFlash('error', 'Class saved but enrollments failed: ' . $e->getMessage());
         }
-
-        return $this->render('create', [
-            'model' => $model,
-            'teachers' => ArrayHelper::map($teachers, 'id', function ($teacher) {
-                return $teacher->first_name . ' ' . $teacher->last_name;
-            }),
-            'allStudents' => ArrayHelper::map($allStudents, 'id', function ($student) {
-                return $student->first_name . ' ' . $student->last_name;
-            })
-        ]);
     }
 
+    return $this->render('create', [
+        'model' => $model,
+        'teachers' => ArrayHelper::map($teachers, 'id', function ($teacher) {
+            return $teacher->first_name . ' ' . $teacher->last_name;
+        }),
+        'courses' => ArrayHelper::map($courses, 'id', 'course_name'), // ✅ Add this
+        'allStudents' => [] // students shown after save
+    ]);
+}
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
@@ -169,43 +170,58 @@ class ClassModelController extends Controller
     }
 
     public function actionEnroll($id)
-    {
-        $class = $this->findModel($id);
-        $allStudents = Students::find()->all();
+{
+    $class = $this->findModel($id);
 
-        if (Yii::$app->request->isPost) {
-            $selectedStudents = Yii::$app->request->post('students', []);
+    // ✅ Filter only students from the same course
+    $students = Students::find()
+        ->where(['course_id' => $class->course_id])
+        ->all();
 
-            $transaction = Yii::$app->db->beginTransaction();
-            try {
-                ClassAssignment::deleteAll(['class_id' => $id]);
+    // Convert to id => full name array
+    $allStudents = [];
+foreach ($students as $student) {
+    $allStudents[$student->id] = $student->first_name . ' ' . $student->last_name . ($student->reg_no ? " ({$student->reg_no})" : '');
+}
 
-                foreach ($selectedStudents as $studentId) {
-                    $enrollment = new ClassAssignment([
-                        'class_id' => $id,
-                        'student_id' => $studentId,
-                        'date_assigned' => date('Y-m-d')
-                    ]);
-                    $enrollment->save();
-                }
 
-                $transaction->commit();
-                Yii::$app->session->setFlash('success', 'Students enrolled successfully!');
-                return $this->redirect(['view', 'id' => $id]);
-            } catch (\Exception $e) {
-                $transaction->rollBack();
-                Yii::$app->session->setFlash('error', 'Enrollment failed: ' . $e->getMessage());
+    // Currently enrolled student IDs
+    $currentStudents = ClassAssignment::find()
+        ->select('student_id')
+        ->where(['class_id' => $id])
+        ->column();
+
+    if (Yii::$app->request->isPost) {
+        $selectedStudents = Yii::$app->request->post('students', []);
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            ClassAssignment::deleteAll(['class_id' => $id]);
+
+            foreach ($selectedStudents as $studentId) {
+                $assignment = new ClassAssignment();
+                $assignment->class_id = $id;
+                $assignment->student_id = $studentId;
+                $assignment->date_assigned = date('Y-m-d');
+                $assignment->save();
             }
-        }
 
-        return $this->render('enroll', [
-            'class' => $class,
-            'allStudents' => ArrayHelper::map($allStudents, 'id', function ($student) {
-                return $student->first_name . ' ' . $student->last_name;
-            }),
-            'currentStudents' => ArrayHelper::getColumn($class->students, 'id')
-        ]);
+            $transaction->commit();
+            Yii::$app->session->setFlash('success', 'Students enrolled successfully.');
+            return $this->redirect(['view', 'id' => $id]);
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            Yii::$app->session->setFlash('error', 'Failed to enroll students.');
+        }
     }
+
+    return $this->render('enroll', [
+        'class' => $class,
+        'allStudents' => $allStudents,
+        'currentStudents' => $currentStudents,
+    ]);
+}
+
     
 public function actionAssignGrade($classId)
 {
