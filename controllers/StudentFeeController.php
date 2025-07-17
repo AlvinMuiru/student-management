@@ -40,9 +40,12 @@ class StudentFeeController extends Controller
     $studentId = $user->student->id;
     $courseId = $user->student->course_id;
 
-    // Get fees for the student's course
-    $courseFees = Fee::find()->where(['course_id' => $courseId])->all();
+    // Step 1: Get ONLY the fees assigned to the student's course
+    $courseFees = Fee::find()
+        ->where(['course_id' => $courseId])
+        ->all();
 
+    // Step 2: For each course fee, create a StudentFee entry if not already exists
     foreach ($courseFees as $fee) {
         $exists = StudentFee::find()
             ->where(['student_id' => $studentId, 'fee_id' => $fee->id])
@@ -57,19 +60,26 @@ class StudentFeeController extends Controller
                 'paid_at' => null,
                 'receipt_path' => null,
             ]);
-            $studentFee->save(false); // skip validation for now
+            $studentFee->save(false); // bypass validation for now
         }
     }
 
+    // Step 3: Fetch only student fees that belong to fees for the student's course
     $dataProvider = new \yii\data\ActiveDataProvider([
-        'query' => StudentFee::find()->where(['student_id' => $studentId])->with('fee.course'),
+        'query' => StudentFee::find()
+            ->alias('sf')
+            ->joinWith(['fee f'])
+            ->where(['sf.student_id' => $studentId, 'f.course_id' => $courseId])
+            ->with(['fee.course']),
+        'pagination' => [
+            'pageSize' => 10,
+        ],
     ]);
 
     return $this->render('index', [
         'dataProvider' => $dataProvider,
     ]);
 }
-
 
 
    public function actionReceipt($id)
