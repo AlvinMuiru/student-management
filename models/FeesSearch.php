@@ -5,12 +5,20 @@ namespace app\models;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Fee;
+use app\models\StudentFee;
 
 /**
  * FeesSearch represents the model behind the search form of `app\models\Fee`.
  */
 class FeesSearch extends Fee
 {
+    public $student_name;
+    public $course_name;
+    public $receipt_number;
+    public $status; 
+    public $paid_at; 
+    public $description;
+
     /**
      * {@inheritdoc}
      */
@@ -19,7 +27,7 @@ class FeesSearch extends Fee
         return [
             [['id', 'course_id'], 'integer'],
             [['amount'], 'number'],
-            [['description', 'created_at'], 'safe'],
+            [['description', 'created_at', 'student_name', 'course_name', 'receipt_number', 'status'], 'safe'],
         ];
     }
 
@@ -42,7 +50,9 @@ class FeesSearch extends Fee
      */
     public function search($params, $formName = null)
     {
-        $query = Fee::find();
+        
+       $query = StudentFee::find()
+       ->joinWith(['student', 'fee.course']);
 
         // add conditions that should always apply here
 
@@ -59,12 +69,12 @@ class FeesSearch extends Fee
         }
 
         // grid filtering conditions
-        $query->andFilterWhere([
-            'id' => $this->id,
-            'course_id' => $this->course_id,
-            'amount' => $this->amount,
-            'created_at' => $this->created_at,
-        ]);
+       $query->andFilterWhere(['like', 'student.full_name', $this->student_name])
+      ->andFilterWhere(['like', 'course.name', $this->course_name])
+      ->andFilterWhere(['like', 'student_fee.receipt_number', $this->receipt_number])
+      ->andFilterWhere(['student_fee.status' => $this->status])
+      ->andFilterWhere(['DATE(student_fee.paid_at)' => $this->paid_at]);
+
 
         $query->andFilterWhere(['like', 'description', $this->description]);
 

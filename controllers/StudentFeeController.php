@@ -8,6 +8,7 @@ use yii\filters\AccessControl;
 use yii\data\ActiveDataProvider;
 use app\models\Fee;
 use Mpdf\Mpdf;
+use app\models\FeesSearch;
 
 
 class StudentFeeController extends Controller
@@ -81,14 +82,21 @@ class StudentFeeController extends Controller
     ]);
 }
 
-
-   public function actionReceipt($id)
+public function actionReceipt($id)
 {
-    $student = \app\models\Students::findOne(['user_id' => Yii::$app->user->id]);
-    $studentFee = StudentFee::findOne(['id' => $id, 'student_id' => $student->id]);
+    $studentFee = StudentFee::findOne($id);
 
     if (!$studentFee || $studentFee->status !== 'paid') {
         throw new \yii\web\NotFoundHttpException('Receipt unavailable.');
+    }
+
+    // Optional: if role is student, ensure they can only view their own receipt
+    if (Yii::$app->user->identity->role === 'student') {
+        $student = \app\models\Students::findOne(['user_id' => Yii::$app->user->id]);
+
+        if (!$student || $studentFee->student_id != $student->id) {
+            throw new \yii\web\ForbiddenHttpException('Access denied.');
+        }
     }
 
     return $this->renderPartial('receipt', [
@@ -104,15 +112,28 @@ public function actionPay($id)
         throw new \yii\web\ForbiddenHttpException('You are not allowed to access this payment.');
     }
 
-    // For demo purposes: just mark as paid (in production, redirect to payment gateway)
-    $studentFee->status = 'paid';
-    $studentFee->amount_paid = $studentFee->fee->amount;
-    $studentFee->paid_at = date('Y-m-d H:i:s');
-    $studentFee->save(false);
+    if ($studentFee->status === 'paid') {
+        Yii::$app->session->setFlash('info', 'This fee is already paid.');
+        return $this->redirect(['index']);
+    }
 
-    Yii::$app->session->setFlash('success', 'Payment successful!');
+    $fee = $studentFee->fee;
+
+    $studentFee->amount_paid = $fee->amount;
+    $studentFee->status = 'paid';
+    $studentFee->paid_at = date('Y-m-d H:i:s');
+    $studentFee->receipt_path = null;
+
+    if ($studentFee->save(false)) { // ✅ Force saving all attributes including receipt_number
+        Yii::$app->session->setFlash('success', 'Payment successful.');
+    } else {
+        Yii::$app->session->setFlash('error', 'Payment failed.');
+    }
+
     return $this->redirect(['index']);
 }
+
+
 public function actionDelete($id)
 {
     $fee = $this->findModel($id);
@@ -140,6 +161,15 @@ public function actionDownloadReceipt($id)
      $mpdf->WriteHTML($content);
      return $mpdf->Output("receipt_{$id}.pdf", 'D'); 
 }
+public function actionAdminLogs()
+{
+    $searchModel = new FeesSearch();
+    $dataProvider = $searchModel->search(Yii::$app->request->queryParams, '');
 
+    return $this->render('admin-logs', [
+        'searchModel' => $searchModel,
+        'dataProvider' => $dataProvider,
+    ]);
+}
 
 }

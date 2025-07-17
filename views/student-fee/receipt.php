@@ -29,6 +29,7 @@ $this->title = "Receipt";
     </p>
 
     <p><strong>Status:</strong> <?= ucfirst($model->status) ?></p>
+    <p><strong>Receipt No:</strong> <?= $model->receipt_number ?></p>
     <p><strong>Paid At:</strong> <?= $model->paid_at ?></p>
 
     <hr>

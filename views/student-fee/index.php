@@ -26,6 +26,11 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
         'status',
         'paid_at',
+        [
+    'attribute' => 'receipt_number',
+    'label' => 'Receipt No.',
+],
+
 
         [
             'class' => 'yii\grid\ActionColumn',
