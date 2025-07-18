@@ -5,78 +5,53 @@ namespace app\models;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Fee;
+use app\models\Courses;
 use app\models\StudentFee;
 
-/**
- * FeesSearch represents the model behind the search form of `app\models\Fee`.
- */
+
 class FeesSearch extends Fee
 {
-    public $student_name;
-    public $course_name;
-    public $receipt_number;
-    public $status; 
-    public $paid_at; 
     public $description;
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
             [['id', 'course_id'], 'integer'],
             [['amount'], 'number'],
-            [['description', 'created_at', 'student_name', 'course_name', 'receipt_number', 'status'], 'safe'],
+            [['description', 'created_at'], 'safe'],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function scenarios()
     {
-        // bypass scenarios() implementation in the parent class
         return Model::scenarios();
     }
 
-    /**
-     * Creates data provider instance with search query applied
-     *
-     * @param array $params
-     * @param string|null $formName Form name to be used into `->load()` method.
-     *
-     * @return ActiveDataProvider
-     */
-    public function search($params, $formName = null)
+    public function search($params)
     {
-        
-       $query = StudentFee::find()
-       ->joinWith(['student', 'fee.course']);
-
-        // add conditions that should always apply here
+        $query = Fee::find()->joinWith(['course']);
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
+            'sort' => [
+                'defaultOrder' => ['created_at' => SORT_DESC],
+            ],
         ]);
 
-        $this->load($params, $formName);
+        $this->load($params);
 
         if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
             return $dataProvider;
         }
 
-        // grid filtering conditions
-       $query->andFilterWhere(['like', 'student.full_name', $this->student_name])
-      ->andFilterWhere(['like', 'course.name', $this->course_name])
-      ->andFilterWhere(['like', 'student_fee.receipt_number', $this->receipt_number])
-      ->andFilterWhere(['student_fee.status' => $this->status])
-      ->andFilterWhere(['DATE(student_fee.paid_at)' => $this->paid_at]);
+        $query->andFilterWhere([
+            'fee.id' => $this->id,
+            'fee.course_id' => $this->course_id,
+            'fee.amount' => $this->amount,
+            'DATE(fee.created_at)' => $this->created_at,
+        ]);
 
-
-        $query->andFilterWhere(['like', 'description', $this->description]);
+        $query->andFilterWhere(['like', 'fee.description', $this->description]);
 
         return $dataProvider;
     }

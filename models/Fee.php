@@ -1,6 +1,9 @@
 <?php
 
 namespace app\models;
+use app\models\Courses;
+use app\models\StudentFee;
+
 
 use Yii;
 

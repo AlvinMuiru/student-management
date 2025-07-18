@@ -30,23 +30,15 @@ $this->params['breadcrumbs'][] = $this->title;
             ['class' => 'yii\grid\SerialColumn'],
 
             'id',
-            [
+        [
     'attribute' => 'course_id',
+    'value' => 'course.name', // Assuming relation is set
     'label' => 'Course',
-    'value' => function ($model) {
-        return $model->course->name ?? 'Not Assigned';
-    },
 ],
+'amount',
+'description',
+'created_at',
 
-            'amount',
-            'description',
-            'created_at',
-            [
-                'class' => ActionColumn::className(),
-                'urlCreator' => function ($action, Fee $model, $key, $index, $column) {
-                    return Url::toRoute([$action, 'id' => $model->id]);
-                 }
-            ],
         ],
     ]); ?>
 

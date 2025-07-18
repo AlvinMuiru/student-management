@@ -9,6 +9,7 @@ use yii\data\ActiveDataProvider;
 use app\models\Fee;
 use Mpdf\Mpdf;
 use app\models\FeesSearch;
+use app\models\StudentFeeSearch;
 
 
 class StudentFeeController extends Controller
@@ -163,8 +164,8 @@ public function actionDownloadReceipt($id)
 }
 public function actionAdminLogs()
 {
-    $searchModel = new FeesSearch();
-    $dataProvider = $searchModel->search(Yii::$app->request->queryParams, '');
+    $searchModel = new \app\models\StudentFeeSearch();
+    $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
     return $this->render('admin-logs', [
         'searchModel' => $searchModel,
