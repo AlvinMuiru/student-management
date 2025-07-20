@@ -14,6 +14,7 @@ $todaysAttendance = \app\models\Attendance::find()
     ->where(['date' => date('Y-m-d')])
     ->count();
 
+$this->registerJsFile('https://cdn.jsdelivr.net/npm/chart.js', ['depends' => [\yii\web\JqueryAsset::class]]);
 ?>
 
 <div class="admin-dashboard container mt-4">
@@ -74,4 +75,119 @@ $todaysAttendance = \app\models\Attendance::find()
             </li>
         </ul>
     </div>
+
+    <hr>
+
+    <!-- Chart Section -->
+    <div class="mt-5">
+        <h4>📊 Paid Students Per Course</h4>
+        <div class="card">
+            <div class="card-body">
+                <canvas id="paidChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
 </div>
+
+<?php
+$chartDataUrl = Url::to(['admin/chart-data']);
+$js = <<<JS
+fetch('$chartDataUrl')
+    .then(response => response.json())
+    .then(data => {
+        const labels = data.map(d => d.course);
+        const values = data.map(d => d.paid);
+
+        const ctx = document.getElementById('paidChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Paid Students',
+                    data: values,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        precision: 0
+                    }
+                }
+            }
+        });
+    });
+JS;
+
+$this->registerJs($js);
+?>
+<?php
+$this->title = 'Unpaid Students per Course';
+$this->registerJsFile('https://cdn.jsdelivr.net/npm/chart.js', ['depends' => [\yii\web\JqueryAsset::class]]);
+?>
+
+<div class="container mt-4">
+    <h1><?= $this->title ?></h1>
+
+    <canvas id="paidChart" height="100"></canvas>
+    <hr>
+    <canvas id="unpaidChart" height="100"></canvas>
+</div>
+
+<?php
+$chartDataUrl = \yii\helpers\Url::to(['admin/chart-data']);
+$js = <<<JS
+fetch('$chartDataUrl')
+    .then(response => response.json())
+    .then(data => {
+        // Paid Chart
+        const paidLabels = data.paid.map(d => d.course);
+        const paidCounts = data.paid.map(d => d.count);
+
+        new Chart(document.getElementById('paidChart'), {
+            type: 'bar',
+            data: {
+                labels: paidLabels,
+                datasets: [{
+                    label: 'Paid Students',
+                    data: paidCounts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: true } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+
+        // Unpaid Chart
+        const unpaidLabels = data.unpaid.map(d => d.course);
+        const unpaidCounts = data.unpaid.map(d => d.count);
+
+        new Chart(document.getElementById('unpaidChart'), {
+            type: 'bar',
+            data: {
+                labels: unpaidLabels,
+                datasets: [{
+                    label: 'Unpaid Students',
+                    data: unpaidCounts,
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: true } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    });
+JS;
+
+$this->registerJs($js);
+?>

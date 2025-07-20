@@ -10,6 +10,8 @@ use app\models\Students;
 use app\models\Teacher;
 use app\models\ClassModel;
 use app\models\Attendance;
+use app\models\Courses;
+use app\models\StudentFee;
 
 class AdminController extends Controller
 {
@@ -50,7 +52,35 @@ class AdminController extends Controller
         'lateCount' => $lateCount,
     ]);
 }
+   // inside AdminController.php
 
+public function actionChartData()
+{
+    $courses = Courses::find()->all();
+    $paidData = [];
+    $unpaidData = [];
 
-    
+    foreach ($courses as $course) {
+        $paidCount = StudentFee::find()
+            ->alias('sf')
+            ->innerJoin('students s', 's.id = sf.student_id')
+            ->where(['s.course_id' => $course->id, 'sf.status' => 'paid'])
+            ->count();
+
+        $unpaidCount = StudentFee::find()
+            ->alias('sf')
+            ->innerJoin('students s', 's.id = sf.student_id')
+            ->where(['s.course_id' => $course->id, 'sf.status' => 'unpaid'])
+            ->count();
+
+        $paidData[] = ['course' => $course->name, 'count' => (int)$paidCount];
+        $unpaidData[] = ['course' => $course->name, 'count' => (int)$unpaidCount];
+    }
+
+    return $this->asJson([
+        'paid' => $paidData,
+        'unpaid' => $unpaidData,
+    ]);
+}
+
 }
