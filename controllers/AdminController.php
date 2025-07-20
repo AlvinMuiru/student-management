@@ -30,6 +30,8 @@ class AdminController extends Controller
 
    public function actionIndex()
 {
+  
+
     $totalStudents = Students::find()->count();
     $totalTeachers = Teacher::find()->count();
     $totalClasses = ClassModel::find()->count();
@@ -48,6 +50,7 @@ class AdminController extends Controller
         'lateCount' => $lateCount,
     ]);
 }
+
 
     
 }

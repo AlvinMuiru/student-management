@@ -1,7 +1,7 @@
 <?php
 
 namespace app\controllers;
-
+use Yii;
 use app\models\Fee;
 use app\models\FeesSearch;
 use yii\web\Controller;
@@ -65,22 +65,25 @@ class FeesController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return string|\yii\web\Response
      */
-    public function actionCreate()
-    {
-        $model = new Fee();
+   public function actionCreate()
+{
+    $model = new Fee();
 
-        if ($this->request->isPost) {
-            if ($model->load($this->request->post()) && $model->save()) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            }
+    if ($model->load(Yii::$app->request->post())) {
+        if ($model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
         } else {
-            $model->loadDefaultValues();
+            Yii::error("Fee save failed: " . print_r($model->errors, true), __METHOD__);
         }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
+    } else {
+        $model->loadDefaultValues();
     }
+
+    return $this->render('create', [
+        'model' => $model,
+    ]);
+}
+
 
     /**
      * Updates an existing Fee model.

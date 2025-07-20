@@ -10,6 +10,7 @@ class StudentFeeSearch extends StudentFee
 {
     public $student_name;
     public $course_name;
+    public $receipt_number;
 
     public function rules()
     {
@@ -20,38 +21,39 @@ class StudentFeeSearch extends StudentFee
         ];
     }
 
-    public function search($params)
-    {
-        $query = StudentFee::find()
-            ->alias('sf')
-            ->joinWith(['student s', 'fee f', 'fee.course c']);
+  public function search($params)
+{
+    $query = StudentFee::find()
+        ->alias('sf')
+        ->joinWith(['student s', 'fee f', 'fee.course c']);
 
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'sort' => ['defaultOrder' => ['paid_at' => SORT_DESC]],
-        ]);
+    $dataProvider = new ActiveDataProvider([
+        'query' => $query,
+        'sort' => ['defaultOrder' => ['paid_at' => SORT_DESC]],
+    ]);
 
-        $this->load($params);
+    $this->load($params);
 
-        if (!$this->validate()) {
-            return $dataProvider;
-        }
-
-        $query->andFilterWhere([
-            'sf.id' => $this->id,
-            'sf.student_id' => $this->student_id,
-            'sf.fee_id' => $this->fee_id,
-            'sf.amount_paid' => $this->amount_paid,
-            'DATE(sf.paid_at)' => $this->paid_at,
-            'sf.status' => $this->status,
-        ]);
-
-        $query->andFilterWhere(['like', 'sf.receipt_number', $this->receipt_number])
-              ->andFilterWhere(['like', new \yii\db\Expression("CONCAT(s.first_name, ' ', s.last_name)"), $this->student_name])
-               ->andFilterWhere(['sf.status' => $this->status])
-               ->andFilterWhere(['DATE(sf.paid_at)' => $this->paid_at])
-              ->andFilterWhere(['like', 'c.name', $this->course_name]);
-
+    if (!$this->validate()) {
         return $dataProvider;
     }
+
+    // Main filters
+    $query->andFilterWhere([
+        'sf.id' => $this->id,
+        'sf.student_id' => $this->student_id,
+        'sf.fee_id' => $this->fee_id,
+        'sf.amount_paid' => $this->amount_paid,
+        'sf.status' => $this->status,
+        'DATE(sf.paid_at)' => $this->paid_at,
+    ]);
+
+    // Text-based filters
+    $query->andFilterWhere(['like', 'sf.receipt_number', trim($this->receipt_number ?? '')])
+      ->andFilterWhere(['like', new \yii\db\Expression("CONCAT(s.first_name, ' ', s.last_name)"), trim($this->student_name ?? '')])
+      ->andFilterWhere(['like', 'c.name', trim($this->course_name ?? '')]);
+
+    return $dataProvider;
+}
+
 }
