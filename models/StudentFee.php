@@ -42,7 +42,7 @@ class StudentFee extends ActiveRecord
             [['amount_paid'], 'number'],
             [['paid_at', 'created_at','receipt_number'], 'safe'],
             [['status'], 'string', 'max' => 20],
-            [['receipt_path'], 'string', 'max' => 255],
+            [['receipt_path','payment_method', 'bank_name', 'transaction_ref'], 'string', 'max' => 255],
             [['receipt_number'], 'string', 'max' => 100],
             [['receipt_path'], 'default', 'value' => null],
         ];

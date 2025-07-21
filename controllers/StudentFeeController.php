@@ -172,5 +172,31 @@ public function actionAdminLogs()
         'dataProvider' => $dataProvider,
     ]);
 }
+ public function actionSimulate($id)
+{
+    $model = $this->findModel($id); // Define findModel() in this controller
+
+    if ($model->load(Yii::$app->request->post())) {
+        if ($model->status === 'paid' && empty($model->paid_at)) {
+            $model->paid_at = date('Y-m-d H:i:s');
+        }
+
+        if ($model->save(false)) {
+            Yii::$app->session->setFlash('success', 'Payment submitted successfully.');
+            return $this->redirect(['student-fee/index']);
+        }
+    }
+
+    return $this->render('pay', ['model' => $model]);
+}
+
+protected function findModel($id)
+{
+    if (($model = StudentFee::findOne($id)) !== null) {
+        return $model;
+    }
+
+    throw new NotFoundHttpException('The requested page does not exist.');
+}
 
 }
