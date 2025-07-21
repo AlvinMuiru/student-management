@@ -12,6 +12,10 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+    'semesterHelper' => [
+        'class' => 'app\components\SemesterHelper',
+],
+
         'authManager' => [
         'class' => 'yii\rbac\DbManager',
     ],

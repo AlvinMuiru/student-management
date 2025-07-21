@@ -68,6 +68,10 @@ $this->params['breadcrumbs'][] = $this->title;
                 </div>
             </div>
 
+            <?php
+              $semester = \app\components\SemesterHelper::getCurrentSemester();
+              $semesterId = $semester ? $semester->id : 0;
+             ?>
             <!-- Class Schedule -->
             <div class="row mt-3">
                 <div class="col-md-12">
@@ -78,7 +82,8 @@ $this->params['breadcrumbs'][] = $this->title;
                         <div class="card-body">
                             <?= GridView::widget([
                                 'dataProvider' => new \yii\data\ActiveDataProvider([
-                                    'query' => $student->getClasses(),
+                                   'query' => $student->getClasses()->andWhere(['semester_id' => $semesterId]),
+
                                     'pagination' => false,
                                 ]),
                                 'columns' => [

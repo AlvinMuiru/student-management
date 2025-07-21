@@ -56,4 +56,9 @@ class Grade extends ActiveRecord
     {
         return $this->hasOne(ClassModel::class, ['id' => 'class_id']);
     }
+    public function getSemester()
+{
+    return $this->hasOne(Semester::class, ['id' => 'semester_id']);
+}
+
 }

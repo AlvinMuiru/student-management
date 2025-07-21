@@ -10,13 +10,39 @@ use app\models\Grade;
 
 class GradeController extends \yii\web\Controller
 {
-    public function actionIndex()
-    {
-        $studentId = Yii::$app->user->identity->student->id;
-        $grades = Grade::find()->where(['student_id' => $studentId])->with('class')->all();
+   public function actionIndex()
+{
+    $studentId = Yii::$app->user->identity->student->id;
+    $semester = \app\components\SemesterHelper::getCurrentSemester();
 
-        return $this->render('index', ['grades' => $grades]);
+    if (!$semester) {
+        Yii::$app->session->setFlash('error', 'No active semester.');
+        return $this->render('index', ['grades' => []]);
     }
+
+    // Check if student paid fees for this semester
+    $hasPaid = \app\models\StudentFee::find()
+        ->where([
+            'student_id' => $studentId,
+            'semester_id' => $semester->id,
+            'status' => 'paid'
+        ])->exists();
+
+    if (!$hasPaid) {
+        Yii::$app->session->setFlash('warning', 'You must clear fees to view grades for this semester.');
+        return $this->render('index', ['grades' => []]);
+    }
+
+    $grades = Grade::find()
+        ->where([
+            'student_id' => $studentId,
+            'semester_id' => $semester->id
+        ])
+        ->with('class')
+        ->all();
+
+    return $this->render('index', ['grades' => $grades]);
+}
 
    public function actionRegisterRetake($id)
 {

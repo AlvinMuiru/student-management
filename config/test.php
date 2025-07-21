@@ -15,31 +15,35 @@ return [
     'language' => 'en-US',
     'components' => [
         'db' => $db,
+        
         'mailer' => [
             'class' => \yii\symfonymailer\Mailer::class,
             'viewPath' => '@app/mail',
-            // send all mails to a file by default.
             'useFileTransport' => true,
             'messageClass' => 'yii\symfonymailer\Message'
         ],
+
         'assetManager' => [
             'basePath' => __DIR__ . '/../web/assets',
         ],
+
         'urlManager' => [
+            'class' => 'yii\web\UrlManager',
             'showScriptName' => true,
+            'enablePrettyUrl' => false, // You can enable if needed
+            'rules' => [],
         ],
+
         'user' => [
+            'class' => 'yii\web\User',
             'identityClass' => 'app\models\User',
+            'enableAutoLogin' => false,
         ],
+
         'request' => [
+            'class' => 'yii\web\Request',
             'cookieValidationKey' => 'test',
             'enableCsrfValidation' => false,
-            // but if you absolutely need it set cookie domain to localhost
-            /*
-            'csrfCookie' => [
-                'domain' => 'localhost',
-            ],
-            */
         ],
     ],
     'params' => $params,

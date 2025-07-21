@@ -131,4 +131,9 @@ class StudentFee extends ActiveRecord
             }
         }
     }
+    public function getSemester()
+{
+    return $this->hasOne(Semester::class, ['id' => 'semester_id']);
+}
+
 }

@@ -66,13 +66,24 @@ use yii\helpers\Url;
                             <?= Html::a('Retake Requests', ['/retake-request/index'], ['class' => 'nav-link']) ?>
                         </li>    
                         <li class="nav-item">
-                              <?= Html::a('Manage Fees', ['/fees/index']) ?>
+                            <?= Html::a('Manage Fees', ['/fees/index']) ?>
                         </li>
                         
                          <li class="nav-item">
                             <?= Html::a('Receipt Logs', ['/student-fee/admin-logs']) ?>
                         </li>
-                        
+                        <li class="nav-item">
+                          <a href="<?= \yii\helpers\Url::to(['/academic-year/index']) ?>" class="nav-link">
+                          <i class="nav-icon fas fa-calendar-alt"></i>
+                        <p>Academic Years</p>
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="<?= \yii\helpers\Url::to(['/semester/index']) ?>" class="nav-link">
+                            <i class="nav-icon fas fa-clock"></i>
+                             <p>Semesters</p>
+                             </a>
+                        </li>
                     <?php endif; ?>
                 <?php endif; ?>
 

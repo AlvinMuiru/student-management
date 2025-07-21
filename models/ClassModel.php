@@ -88,6 +88,10 @@ public function getCourse()
 {
     return $this->hasOne(Courses::class, ['id' => 'course_id']);
 }
+public function getSemester()
+{
+    return $this->hasOne(Semester::class, ['id' => 'semester_id']);
+}
 
 
 }
