@@ -1,11 +1,19 @@
 <?php
 use yii\helpers\Html;
 use app\models\RetakeRequest;
+use app\components\SemesterHelper;
 
-/** @var $grades app\models\Grade[] */
 $this->title = 'My Grades';
 ?>
 <h1><?= Html::encode($this->title) ?></h1>
+
+<?php
+$semester = SemesterHelper::getCurrentSemester();
+?>
+
+<?php if ($semester): ?>
+    <p><strong>Current Semester:</strong> <?= Html::encode($semester->name) ?> (<?= Html::encode($semester->academicYear->year_name) ?>)</p>
+<?php endif; ?>
 
 <table class="table table-bordered">
     <thead>
@@ -18,15 +26,25 @@ $this->title = 'My Grades';
     </thead>
     <tbody>
         <?php foreach ($grades as $grade): ?>
+            <?php if (!$semester || $grade->semester_id != $semester->id) continue; ?>
             <tr>
                 <td><?= $grade->class ? $grade->class->class_name : '(Class not found)' ?></td>
                 <td><?= $grade->score ?></td>
-                <td><?= $grade->passed ?></td>
                 <td>
-                    <?php if ($grade->passed == 0): ?>
+                    <?php if ($grade->passed): ?>
+                        <span class="badge badge-success">Passed</span>
+                    <?php else: ?>
+                        <span class="badge badge-danger">Failed</span>
+                    <?php endif; ?>
+                </td>
+                <td>
+                    <?php if (!$grade->passed): ?>
                         <?php
                         $alreadyRequested = RetakeRequest::find()
-                            ->where(['grade_id' => $grade->id, 'student_id' => Yii::$app->user->identity->student->id])
+                            ->where([
+                                'grade_id' => $grade->id,
+                                'student_id' => Yii::$app->user->identity->student->id
+                            ])
                             ->exists();
                         ?>
                         <?php if ($alreadyRequested): ?>

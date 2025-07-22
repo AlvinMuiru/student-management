@@ -1,6 +1,7 @@
 <?php
 
 namespace app\models;
+use app\models\ClassModel;
 
 use Yii;
 use yii\behaviors\TimestampBehavior;
@@ -86,9 +87,10 @@ class Students extends \yii\db\ActiveRecord
 
 public function getClasses()
 {
-    return $this->hasMany(ClassModel::className(), ['id' => 'class_id'])
+    return $this->hasMany(ClassModel::class, ['id' => 'class_id'])
         ->viaTable('class_assignments', ['student_id' => 'id']);
 }
+
 
 public function getAttendances()
 {

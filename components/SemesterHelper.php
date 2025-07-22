@@ -2,14 +2,17 @@
 namespace app\components;
 
 use app\models\Semester;
-
+use Yii;
 class SemesterHelper
 {
     public static function getCurrentSemester()
-    {
-        return Semester::find()
-            ->where(['<=', 'start_date', date('Y-m-d')])
-            ->andWhere(['>=', 'end_date', date('Y-m-d')])
-            ->one();
-    }
+{
+    $now = date('Y-m-d');
+
+    return Semester::find()
+        ->where(['<=', 'start_date', $now])
+        ->andWhere(['>=', 'end_date', $now])
+        ->one();
+}
+
 }

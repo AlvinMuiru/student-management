@@ -28,6 +28,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                 'attributes' => [
                                     'first_name',
                                     'last_name',
+                                    'reg_no',
                                     'birthdate:date',
                                     'email:email',
                                     'phone',
@@ -71,19 +72,20 @@ $this->params['breadcrumbs'][] = $this->title;
             <?php
               $semester = \app\components\SemesterHelper::getCurrentSemester();
               $semesterId = $semester ? $semester->id : 0;
-             ?>
+            ?>
+
             <!-- Class Schedule -->
             <div class="row mt-3">
                 <div class="col-md-12">
                     <div class="card">
                         <div class="card-header bg-info text-white">
-                            <h5 class="mb-0">Class Schedule</h5>
+                            <h5 class="mb-0">Class Schedule - <?= $semester ? Html::encode($semester->name) : 'No Active Semester' ?></h5>
                         </div>
                         <div class="card-body">
                             <?= GridView::widget([
                                 'dataProvider' => new \yii\data\ActiveDataProvider([
-                                   'query' => $student->getClasses()->andWhere(['semester_id' => $semesterId]),
-
+                                    'query' => $student->getClasses()
+                                        ->andWhere(['semester_id' => $semesterId]),
                                     'pagination' => false,
                                 ]),
                                 'columns' => [

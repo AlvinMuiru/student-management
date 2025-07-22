@@ -28,16 +28,23 @@ class DashboardController extends Controller
     }
 
     public function actionIndex()
-    {
-        $user = Yii::$app->user->identity;
-        $student = $user->student;
+{
+    $user = Yii::$app->user->identity;
+    $student = $user->student;
 
-        if (!$student) {
-            throw new ForbiddenHttpException('You are not registered as a student.');
-        }
-
-        return $this->render('index', [
-            'student' => $student,
-        ]);
+    if (!$student) {
+        throw new ForbiddenHttpException('You are not registered as a student.');
     }
+
+    $semester = \app\components\SemesterHelper::getCurrentSemester(); // ✅ Fetch active semester
+    $semesterId = $semester ? $semester->id : null;
+   // dd($semester); // or var_dump($semester); exit;
+
+
+    return $this->render('index', [
+        'student' => $student,
+        'semesterId' => $semesterId, // ✅ Pass to view
+    ]);
+}
+
 }
