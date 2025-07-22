@@ -32,8 +32,8 @@ class ClassModel extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-        [['class_name', 'teacher_id','course_id'], 'required'],
-        [['teacher_id','course_id'], 'integer'],
+        [['class_name', 'teacher_id','course_id','semester_id'], 'required'],
+        [['teacher_id','course_id','semester_id'], 'integer'],
         [['teacher_name', 'schedule'], 'default', 'value' => null],
         [['created_at', 'updated_at'], 'safe'],
         [['class_name'], 'string', 'max' => 50],

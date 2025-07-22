@@ -16,6 +16,7 @@ use app\models\Teacher;
 use app\models\forms\AssignGradeForm;
 use app\models\Grade;
 use app\models\Courses;
+use app\models\Semester;
 
 
 class ClassModelController extends Controller
@@ -39,7 +40,9 @@ class ClassModelController extends Controller
       public function actionIndex()
     {
         $dataProvider = new ActiveDataProvider([
-            'query' => ClassModel::find(),
+            'query' => ClassModel::find()
+             ->where(['semester_id' => Semester::find()->select('id')->where(['status' => 'active'])]),
+
         ]);
 
         return $this->render('index', [
@@ -55,7 +58,7 @@ class ClassModelController extends Controller
         ]);
     }
 
-  public function actionCreate()
+ public function actionCreate()
 {
     $model = new ClassModel();
 
@@ -69,7 +72,17 @@ class ClassModelController extends Controller
     // ✅ Fetch all courses
     $courses = Courses::find()->all();
 
-    if ($model->load(Yii::$app->request->post()) && $model->save()) {
+    if ($model->load(Yii::$app->request->post())) {
+
+        // 👇 Debug if saving fails
+        if (!$model->save()) {
+            Yii::error($model->getErrors(), 'classModelErrors');
+            echo "<pre>";
+            print_r($model->getErrors());
+            echo "</pre>";
+            exit;
+        }
+
         $enrolledStudents = Yii::$app->request->post('ClassModel')['enrolledStudents'] ?? [];
 
         $transaction = Yii::$app->db->beginTransaction();
@@ -98,10 +111,11 @@ class ClassModelController extends Controller
         'teachers' => ArrayHelper::map($teachers, 'id', function ($teacher) {
             return $teacher->first_name . ' ' . $teacher->last_name;
         }),
-        'courses' => ArrayHelper::map($courses, 'id', 'course_name'), // ✅ Add this
+        'courses' => ArrayHelper::map($courses, 'id', 'course_name'),
         'allStudents' => [] // students shown after save
     ]);
 }
+
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
@@ -169,23 +183,32 @@ class ClassModelController extends Controller
         throw new NotFoundHttpException('The requested page does not exist.');
     }
 
-    public function actionEnroll($id)
+   public function actionEnroll($id)
 {
-    $class = $this->findModel($id);
+    if (!Yii::$app->user->can('admin')) {
+        throw new \yii\web\ForbiddenHttpException("Only admins can enroll students.");
+    }
 
-    // ✅ Filter only students from the same course
+    $class = $this->findModel($id);
+    $semesterId = $class->semester_id;
+
+    // Get students in the same course who are NOT already enrolled in another class in this semester
+    $enrolledStudentIds = ClassAssignment::find()
+        ->select('student_id')
+        ->leftJoin('classes', 'classes.id = class_assignments.class_id')
+        ->where(['classes.semester_id' => $semesterId])
+        ->column();
+
     $students = Students::find()
         ->where(['course_id' => $class->course_id])
+        ->andWhere(['not in', 'id', $enrolledStudentIds]) // prevent double enrollment in same semester
         ->all();
 
-    // Convert to id => full name array
     $allStudents = [];
-foreach ($students as $student) {
-    $allStudents[$student->id] = $student->first_name . ' ' . $student->last_name . ($student->reg_no ? " ({$student->reg_no})" : '');
-}
+    foreach ($students as $student) {
+        $allStudents[$student->id] = $student->first_name . ' ' . $student->last_name . ($student->reg_no ? " ({$student->reg_no})" : '');
+    }
 
-
-    // Currently enrolled student IDs
     $currentStudents = ClassAssignment::find()
         ->select('student_id')
         ->where(['class_id' => $id])
@@ -222,7 +245,6 @@ foreach ($students as $student) {
     ]);
 }
 
-    
 public function actionAssignGrade($classId)
 {
     $class = $this->findModel($classId);
@@ -256,6 +278,28 @@ public function actionAssignGrade($classId)
         'model' => $form,
         'class' => $class,
         'students' => $students,
+    ]);
+}
+public function actionAvailable()
+{
+    $student = Yii::$app->user->identity->student;
+
+    // Get the current active semester
+    $activeSemester = Semester::find()->where(['status' => 'active'])->one();
+
+    if (!$activeSemester) {
+        Yii::$app->session->setFlash('error', 'No active semester found.');
+        return $this->redirect(['site/index']);
+    }
+
+    // Find only classes that match the student's course and current semester
+    $classes = ClassModel::find()
+        ->where(['course_id' => $student->course_id])
+        ->andWhere(['semester_id' => $activeSemester->id])
+        ->all();
+
+    return $this->render('available', [
+        'classes' => $classes,
     ]);
 }
 

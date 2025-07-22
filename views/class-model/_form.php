@@ -4,6 +4,7 @@ use yii\widgets\ActiveForm;
 use yii\helpers\ArrayHelper;
 use app\models\Students;
 use app\models\Courses;
+use app\models\Semester;
 
 /** @var yii\web\View $this */
 /** @var app\models\ClassModel $model */
@@ -28,7 +29,13 @@ use app\models\Courses;
     ArrayHelper::map(Courses::find()->all(), 'id', 'name'),
     ['prompt' => 'Select Course']
 ) ?>
-        
+      <?= $form->field($model, 'semester_id')->dropDownList(
+    \yii\helpers\ArrayHelper::map(\app\models\Semester::find()->all(), 'id', function ($semester) {
+        return $semester->academicYear->year_name . ' - ' . $semester->name;
+    }),
+    ['prompt' => 'Select Semester']
+) ?>
+
 
            <?= $form->field($model, 'teacher_id')->dropDownList(
     $teachers,
