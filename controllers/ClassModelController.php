@@ -259,16 +259,14 @@ public function actionAssignGrade($classId)
     if ($form->load(Yii::$app->request->post()) && $form->validate()) {
         $grade = new Grade();
         $grade->student_id = $form->student_id;
-        $grade->class_id = $classId;
+        $grade->class_id = $class->id;
         $grade->score = $form->score;
         $grade->passed = $form->score >= 50 ? 1 : 0;
-
-        // ✅ SET THE SEMESTER ID FROM CLASS MODEL
-        $grade->semester_id = $class->semester_id;
+        $grade->semester_id = $class->semester_id; // ✅ Automatically use class semester
 
         if ($grade->save()) {
             Yii::$app->session->setFlash('success', '✅ Grade assigned successfully.');
-            return $this->redirect(['view', 'id' => $classId]);
+            return $this->redirect(['view', 'id' => $class->id]);
         } else {
             Yii::error($grade->getErrors(), 'grade_save_error');
             Yii::$app->session->setFlash('error', '❌ Failed to save grade: ' . json_encode($grade->getErrors()));

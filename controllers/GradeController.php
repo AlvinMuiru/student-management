@@ -7,32 +7,37 @@ use yii\web\Controller;
 use yii\filters\AccessControl;
 use yii\web\ForbiddenHttpException;
 use app\models\Grade;
+use app\components\SemesterHelper;
+use app\models\Semester;
 
 class GradeController extends \yii\web\Controller
 {
-  public function actionIndex()
-{
-    $student = Yii::$app->user->identity->student;
+   public function actionIndex()
+    {
+        $student = Yii::$app->user->identity->student;
 
-    if (!$student) {
-        throw new \yii\web\NotFoundHttpException('Student profile not found.');
+        if (!$student) {
+            throw new NotFoundHttpException('Student profile not found.');
+        }
+
+        $semester = SemesterHelper::getCurrentSemester();
+
+        if (!$semester) {
+            Yii::$app->session->setFlash('warning', 'No active semester found.');
+            return $this->render('index', ['grades' => []]);
+        }
+
+        $grades = Grade::find()
+            ->where([
+                'student_id' => $student->id,
+                'semester_id' => $semester->id,
+            ])
+            ->all();
+
+        return $this->render('index', [
+            'grades' => $grades,
+        ]);
     }
-
-    $semester = \app\components\SemesterHelper::getCurrentSemester();
-    $semesterId = $semester ? $semester->id : null;
-
-    $grades = \app\models\Grade::find()
-        ->where(['student_id' => $student->id])
-        ->joinWith('class')
-        ->andWhere(['classes.semester_id' => $semesterId])
-        ->all();
-
-    return $this->render('index', [
-        'grades' => $grades,
-    ]);
-}
-
-
    public function actionRegisterRetake($id)
 {
     $grade = Grade::findOne($id);

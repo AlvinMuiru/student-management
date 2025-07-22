@@ -27,11 +27,11 @@ class Grade extends ActiveRecord
     public function rules()
     {
         return [
-            [['student_id', 'class_id', 'score'], 'required'],
-            [['student_id', 'class_id'], 'integer'],
+            [['student_id', 'class_id', 'score','semester_id'], 'required'],
+            [['student_id', 'class_id','semester_id'], 'integer'],
             [['score'], 'number'],
             [['passed'], 'boolean'],
-            [['created_at'], 'safe'], // removed updated_at
+            [['created_at'], 'safe'], 
         ];
     }
 
