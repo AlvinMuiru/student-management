@@ -1,64 +1,82 @@
 <?php
+
 use yii\helpers\Html;
-use app\models\RetakeRequest;
-use app\components\SemesterHelper;
+use yii\helpers\Url;
+use yii\widgets\ActiveForm;
+
+/** @var yii\web\View $this */
+/** @var app\models\Grade[] $grades */
+/** @var app\models\Semester[] $semesters */
+/** @var app\models\Semester|null $selectedSemester */
 
 $this->title = 'My Grades';
-?>
-<h1><?= Html::encode($this->title) ?></h1>
-
-<?php
-$semester = SemesterHelper::getCurrentSemester();
+$this->params['breadcrumbs'][] = $this->title;
 ?>
 
-<?php if ($semester): ?>
-    <p><strong>Current Semester:</strong> <?= Html::encode($semester->name) ?> (<?= Html::encode($semester->academicYear->year_name) ?>)</p>
-<?php endif; ?>
+<div class="grade-index container mt-4">
 
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Class</th>
-            <th>Score</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($grades as $grade): ?>
-            <?php if (!$semester || $grade->semester_id != $semester->id) continue; ?>
-            <tr>
-                <td><?= $grade->class ? $grade->class->class_name : '(Class not found)' ?></td>
-                <td><?= $grade->score ?></td>
-                <td>
-                    <?php if ($grade->passed): ?>
-                        <span class="badge badge-success">Passed</span>
-                    <?php else: ?>
-                        <span class="badge badge-danger">Failed</span>
-                    <?php endif; ?>
-                </td>
-                <td>
-                    <?php if (!$grade->passed): ?>
-                        <?php
-                        $alreadyRequested = RetakeRequest::find()
-                            ->where([
-                                'grade_id' => $grade->id,
-                                'student_id' => Yii::$app->user->identity->student->id
-                            ])
-                            ->exists();
-                        ?>
-                        <?php if ($alreadyRequested): ?>
-                            <span class="badge badge-secondary">Requested</span>
-                        <?php else: ?>
-                            <?= Html::a('Register for Retake', ['grade/register-retake', 'id' => $grade->id], [
-                                'class' => 'btn btn-warning btn-sm',
-                                'data-method' => 'post',
-                                'data-confirm' => 'Are you sure you want to request a retake for this unit?',
-                            ]) ?>
-                        <?php endif; ?>
-                    <?php endif; ?>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+    <h1><?= Html::encode($this->title) ?></h1>
+
+    <!-- Semester Selection Dropdown -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <strong>Select Semester</strong>
+        </div>
+        <div class="card-body">
+            <?php $form = ActiveForm::begin([
+                'method' => 'get',
+                'action' => Url::to(['grade/index']),
+                'options' => ['class' => 'form-inline'],
+            ]); ?>
+
+            <div class="form-group me-2">
+                <?= Html::dropDownList(
+                    'semester_id',
+                    $selectedSemester ? $selectedSemester->id : null,
+                    \yii\helpers\ArrayHelper::map($semesters, 'id', function ($sem) {
+                        return $sem->academicYear->year_name . ' - ' . $sem->name;
+                    }),
+                    ['class' => 'form-select', 'prompt' => 'Select Semester', 'onchange' => 'this.form.submit()']
+                ) ?>
+            </div>
+
+            <?php ActiveForm::end(); ?>
+        </div>
+    </div>
+
+    <!-- Grades Table -->
+    <?php if ($grades): ?>
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <strong>Grades for: <?= Html::encode($selectedSemester->academicYear->year_name . ' - ' . $selectedSemester->name) ?></strong>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Class</th>
+                            <th>Grade</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($grades as $grade): ?>
+                            <tr>
+                                <td><?= Html::encode($grade->class->class_name ?? 'N/A') ?></td>
+                                <td><?= Html::encode($grade->score ?? 'Pending') ?></td>
+                                <td>
+                                    <?= $grade->score && $grade->score < 50 ? 'Failed' : ($grade->score? 'Passed' : 'N/A') ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    <?php else: ?>
+        <div class="alert alert-info">
+            No grades found for the selected semester.
+        </div>
+    <?php endif; ?>
+
+</div>

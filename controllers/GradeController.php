@@ -12,32 +12,51 @@ use app\models\Semester;
 
 class GradeController extends \yii\web\Controller
 {
-   public function actionIndex()
-    {
-        $student = Yii::$app->user->identity->student;
+   
+  public function actionIndex()
+{
+    $student = Yii::$app->user->identity->student;
 
-        if (!$student) {
-            throw new NotFoundHttpException('Student profile not found.');
-        }
+    if (!$student) {
+        throw new NotFoundHttpException('Student profile not found.');
+    }
 
-        $semester = SemesterHelper::getCurrentSemester();
+    // Get all semesters
+    $semesters = Semester::find()
+        ->joinWith('academicYear')
+        ->orderBy(['academic_year_id' => SORT_DESC, 'start_date' => SORT_ASC])
+        ->all();
 
-        if (!$semester) {
-            Yii::$app->session->setFlash('warning', 'No active semester found.');
-            return $this->render('index', ['grades' => []]);
-        }
+    // Check if a semester is selected from the dropdown
+    $semesterId = Yii::$app->request->get('semester_id');
+    $semester = $semesterId ? Semester::findOne($semesterId) : \app\components\SemesterHelper::getCurrentSemester();
 
-        $grades = Grade::find()
-            ->where([
-                'student_id' => $student->id,
-                'semester_id' => $semester->id,
-            ])
-            ->all();
-
+    if (!$semester) {
+        Yii::$app->session->setFlash('warning', 'No active or selected semester found.');
         return $this->render('index', [
-            'grades' => $grades,
+            'grades' => [],
+            'semesters' => $semesters,
+            'selectedSemester' => null,
         ]);
     }
+
+    // Fetch grades for this student and selected semester
+   $grades = Grade::find()
+    ->where([
+        'student_id' => $student->id,
+        'semester_id' => $semester->id,
+    ])
+    ->with(['class']) // 👈 add this line
+    ->all();
+
+
+    return $this->render('index', [
+        'grades' => $grades,
+        'semesters' => $semesters,
+        'selectedSemester' => $semester,
+    ]);
+}
+
    public function actionRegisterRetake($id)
 {
     $grade = Grade::findOne($id);

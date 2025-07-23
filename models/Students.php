@@ -37,15 +37,15 @@ class Students extends \yii\db\ActiveRecord
     {
         return [
             [['birthdate', 'address', 'phone', 'email'], 'default', 'value' => null],
-            [['first_name', 'last_name','reg_no'], 'required'],
+            [['first_name','user_id', 'last_name','reg_no'], 'required'],
             [['birthdate', 'created_at', 'updated_at'], 'safe'],
             [['address'], 'string'],
             [['first_name', 'last_name'], 'string', 'max' => 50],
             [['phone'], 'string', 'max' => 20],
             [['email'], 'string', 'max' => 100],
-            [['course_id'], 'integer'],
+            [['course_id','user_id'], 'integer'],
             [['reg_no'], 'unique'],
-
+            [['user_id'], 'exist', 'targetClass' => User::class, 'targetAttribute' => ['user_id' => 'id']],
         ];
     } 
 
@@ -132,8 +132,9 @@ public function getAttendanceSummary()
 }
 public function getUser()
 {
-    return $this->hasOne(User::className(), ['id' => 'user_id']);
+    return $this->hasOne(User::class, ['id' => 'user_id']);
 }
+
 public function getGrades()
 {
     return $this->hasMany(Grade::class, ['student_id' => 'id']);
