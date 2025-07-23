@@ -27,9 +27,9 @@ class Grade extends ActiveRecord
     public function rules()
     {
         return [
-            [['student_id', 'class_id', 'score','semester_id'], 'required'],
+            [['student_id', 'class_id','semester_id'], 'required'],
             [['student_id', 'class_id','semester_id'], 'integer'],
-            [['score'], 'number'],
+            [['score','cat_score','exam_score'], 'number'],
             [['passed'], 'boolean'],
             [['created_at'], 'safe'], 
         ];
@@ -46,6 +46,11 @@ class Grade extends ActiveRecord
             ],
         ];
     }
+
+  public function calculateFinalScore()
+{
+    return $this->cat_score + $this->exam_score;
+}
 
     public function getStudent()
     {

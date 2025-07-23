@@ -2,39 +2,64 @@
 
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use yii\helpers\ArrayHelper;
+use app\models\Students;
+use app\models\ClassAssignment;
 
 /** @var yii\web\View $this */
 /** @var app\models\forms\AssignGradeForm $model */
 /** @var app\models\ClassModel $class */
-/** @var app\models\Students[] $students */
 
-$this->title = 'Assign Grade';
-$this->params['breadcrumbs'][] = ['label' => 'Classes', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $class->class_name, 'url' => ['view', 'id' => $class->id]];
-$this->params['breadcrumbs'][] = $this->title;
+$this->title = 'Assign Grade: ' . $class->class_name;
 ?>
 
-<div class="class-grade-form">
-    <h1><?= Html::encode($this->title) ?> - <?= Html::encode($class->class_name) ?></h1>
-
-    <?php $form = ActiveForm::begin(
-        [
-    'id' => 'assign-grade-form',
-    'action' => ['class-model/assign-grade', 'classId' => $class->id],
-    'method' => 'post',
-]
-    ); ?>
-
-    <?= $form->field($model, 'student_id')->dropDownList(
-        \yii\helpers\ArrayHelper::map($students, 'id', fn($s) => $s->first_name . ' ' . $s->last_name),
-        ['prompt' => 'Select Student']
-    ) ?>
-
-    <?= $form->field($model, 'score')->input('number', ['min' => 0, 'max' => 100]) ?>
-
-    <div class="form-group">
-        <?= Html::submitButton('Assign Grade', ['class' => 'btn btn-primary']) ?>
+<div class="card card-primary">
+    <div class="card-header">
+        <h3 class="card-title"><?= Html::encode($this->title) ?></h3>
     </div>
 
-    <?php ActiveForm::end(); ?>
+    <div class="card-body">
+        <?php $form = ActiveForm::begin(); ?>
+
+        <?= $form->field($model, 'student_id')->dropDownList(
+            ArrayHelper::map(
+                Students::find()
+                    ->joinWith('classAssignments')
+                    ->where(['class_assignments.class_id' => $class->id])
+                    ->all(),
+                'id',
+                function ($student) {
+                    return $student->first_name . ' ' . $student->last_name . ' (' . $student->reg_no . ')';
+                }
+            ),
+            ['prompt' => 'Select a student']
+        ) ?>
+
+        <?= $form->field($model, 'cat_score')->textInput(['type' => 'number', 'step' => 'any', 'id' => 'cat']) ?>
+        <?= $form->field($model, 'exam_score')->textInput(['type' => 'number', 'step' => 'any', 'id' => 'exam']) ?>
+        <?= $form->field($model, 'score')->textInput(['readonly' => true, 'id' => 'final']) ?>
+
+        <?= Html::activeHiddenInput($model, 'class_id', ['value' => $class->id]) ?>
+
+        <div class="form-group">
+            <?= Html::submitButton('Save Grade', ['class' => 'btn btn-success']) ?>
+        </div>
+
+        <?php ActiveForm::end(); ?>
+    </div>
 </div>
+
+<?php
+$js = <<<JS
+    function calculateFinalScore() {
+        let cat = parseFloat(document.getElementById("cat").value) || 0;
+        let exam = parseFloat(document.getElementById("exam").value) || 0;
+        let final = cat+ exam;
+        document.getElementById("final").value = final.toFixed(2);
+    }
+
+    document.getElementById("cat").addEventListener("input", calculateFinalScore);
+    document.getElementById("exam").addEventListener("input", calculateFinalScore);
+JS;
+$this->registerJs($js);
+?>

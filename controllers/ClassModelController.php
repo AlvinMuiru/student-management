@@ -249,20 +249,32 @@ public function actionAssignGrade($classId)
 {
     $class = $this->findModel($classId);
 
+    // Only allow the assigned teacher or admin
     if (!Yii::$app->user->can('admin') && $class->teacher_id !== Yii::$app->user->identity->teacher->id) {
         throw new \yii\web\ForbiddenHttpException("You are not allowed to assign grades for this class.");
     }
 
     $form = new AssignGradeForm();
-    $students = $class->students;
+    $students = $class->students; // Enrolled students
 
     if ($form->load(Yii::$app->request->post()) && $form->validate()) {
-        $grade = new Grade();
-        $grade->student_id = $form->student_id;
-        $grade->class_id = $class->id;
-        $grade->score = $form->score;
-        $grade->passed = $form->score >= 50 ? 1 : 0;
-        $grade->semester_id = $class->semester_id; // ✅ Automatically use class semester
+        $grade = Grade::findOne([
+            'student_id' => $form->student_id,
+            'class_id' => $class->id,
+        ]);
+
+        if (!$grade) {
+            $grade = new Grade();
+            $grade->student_id = $form->student_id;
+            $grade->class_id = $class->id;
+            $grade->semester_id = $class->semester_id; // Automatically assign semester
+        }
+
+        // Set CAT and Exam scores + auto-calculate final
+        $grade->cat_score = $form->cat_score;
+        $grade->exam_score = $form->exam_score;
+        $grade->score = $form->cat_score + $form->exam_score;
+        $grade->passed = $grade->score >= 40; // Pass threshold
 
         if ($grade->save()) {
             Yii::$app->session->setFlash('success', '✅ Grade assigned successfully.');
@@ -279,6 +291,7 @@ public function actionAssignGrade($classId)
         'students' => $students,
     ]);
 }
+
 
 public function actionAvailable()
 {
