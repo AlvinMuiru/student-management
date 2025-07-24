@@ -48,7 +48,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <!-- ✅ Download Transcript Button -->
     <?php if (!empty($grades)): ?>
         <div class="mb-3">
-            <?= Html::a('📄 Download Transcript', ['transcript/pdf', 'studentId' => $student->id], [
+            <?= Html::a('📄 Download Transcript', ['transcript/download', 'studentId' => $student->id], [
                 'class' => 'btn btn-primary',
                 'target' => '_blank',
             ]) ?>

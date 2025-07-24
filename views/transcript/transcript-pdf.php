@@ -1,5 +1,5 @@
 <?php use yii\helpers\Html; ?>
-<pre><?= print_r($transcriptData, true) ?></pre>
+
 
 <h2 style="text-align:center;">Academic Transcript</h2>
 <p><strong>Name:</strong> <?= Html::encode($student->first_name . ' ' . $student->last_name) ?><br>
