@@ -8,6 +8,7 @@ use yii\widgets\ActiveForm;
 /** @var app\models\Grade[] $grades */
 /** @var app\models\Semester[] $semesters */
 /** @var app\models\Semester|null $selectedSemester */
+/** @var app\models\Student $student */ // ✅ Make sure $student is passed from controller
 
 $this->title = 'My Grades';
 $this->params['breadcrumbs'][] = $this->title;
@@ -44,6 +45,16 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
     </div>
 
+    <!-- ✅ Download Transcript Button -->
+    <?php if (!empty($grades)): ?>
+        <div class="mb-3">
+            <?= Html::a('📄 Download Transcript', ['transcript/pdf', 'studentId' => $student->id], [
+                'class' => 'btn btn-primary',
+                'target' => '_blank',
+            ]) ?>
+        </div>
+    <?php endif; ?>
+
     <!-- Grades Table -->
     <?php if ($grades): ?>
         <div class="card">
@@ -65,7 +76,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                 <td><?= Html::encode($grade->class->class_name ?? 'N/A') ?></td>
                                 <td><?= Html::encode($grade->score ?? 'Pending') ?></td>
                                 <td>
-                                    <?= $grade->score && $grade->score < 50 ? 'Failed' : ($grade->score? 'Passed' : 'N/A') ?>
+                                    <?= $grade->score && $grade->score < 50 ? 'Failed' : ($grade->score ? 'Passed' : 'N/A') ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

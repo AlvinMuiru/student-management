@@ -11,7 +11,6 @@ use app\models\forms\AssignGradeForm;
 use app\components\SemesterHelper;
 use app\models\RetakeRequest;
 use app\models\ClassModel;
-
 class GradeController extends Controller
 {
     public function actionIndex()
@@ -51,6 +50,7 @@ class GradeController extends Controller
             'grades' => $grades,
             'semesters' => $semesters,
             'selectedSemester' => $semester,
+            'student' =>$student,
         ]);
     }
 
