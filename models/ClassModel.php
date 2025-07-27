@@ -92,6 +92,10 @@ public function getSemester()
 {
     return $this->hasOne(Semester::class, ['id' => 'semester_id']);
 }
+public function getExamSchedules()
+{
+    return $this->hasMany(ExamSchedule::class, ['class_id' => 'id']);
+}
 
 
 }

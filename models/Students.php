@@ -144,5 +144,15 @@ public function getCourse()
     return $this->hasOne(Courses::class, ['id' => 'course_id']);
 }
 
+public function getExamAttendances()
+{
+    return $this->hasMany(ExamAttendance::class, ['student_id' => 'id']);
+}
+public function hasClearedFees($semesterId)
+{
+    return \app\models\StudentFee::find()
+        ->where(['student_id' => $this->id, 'semester_id' => $semesterId, 'status' => 'Paid'])
+        ->exists();
+}
 
 }

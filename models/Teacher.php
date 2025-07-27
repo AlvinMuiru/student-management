@@ -50,4 +50,9 @@ public function getUser()
     {
         return $this->hasOne(User::class, ['id' => 'user_id']);
     }
+    public function getInvigilatedExams()
+{
+    return $this->hasMany(ExamInvigilator::class, ['teacher_id' => 'id']);
+}
+
 }

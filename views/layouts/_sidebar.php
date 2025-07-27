@@ -45,7 +45,12 @@ use yii\helpers\Url;
                            <?= Html::a('Retake Requests', ['/retake-request/index'], ['class' => 'nav-link']) ?>
 
                         </li>
-
+                        <li class="nav-item">
+                           <a href="<?= \yii\helpers\Url::to(['/exam/index']) ?>" class="nav-link">
+                           <i class="nav-icon fas fa-calendar-alt"></i>
+                           <p>Exam Schedules</p>
+                           </a>
+                        </li>
                     <?php elseif (Yii::$app->user->identity->role === 'admin'): ?>
                         <li class="nav-item">
                             <?= Html::a('Admin Dashboard', ['/admin/index'], ['class' => 'nav-link']) ?>
@@ -84,6 +89,13 @@ use yii\helpers\Url;
                              <p>Semesters</p>
                              </a>
                         </li>
+                        <li class="nav-item">
+                           <a href="<?= \yii\helpers\Url::to(['/exam/index']) ?>" class="nav-link">
+                           <i class="nav-icon fas fa-calendar-alt"></i>
+                           <p>Exam Schedules</p>
+                           </a>
+                        </li>
+
                     <?php endif; ?>
                 <?php endif; ?>
 

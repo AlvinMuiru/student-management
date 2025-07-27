@@ -108,11 +108,7 @@ class TranscriptController extends Controller
             'transcriptData' => $transcriptData,
         ]);
 
-        $pdf = new Mpdf([
-              'mode' => 'utf-8',
-              'format' => 'A4',
-              'default_font' => 'dejavusans', // Supports basic Unicode
-              ]);
+        $pdf = new Mpdf();
         $pdf->WriteHTML($content);
         return $pdf->Output('Transcript.pdf', \Mpdf\Output\Destination::DOWNLOAD);
     }

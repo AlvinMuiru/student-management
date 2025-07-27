@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\Students;
 
 /**
  * This is the model class for table "class_assignments".
@@ -51,7 +52,7 @@ class ClassAssignment extends \yii\db\ActiveRecord
 
     public function getStudent()
 {
-    return $this->hasOne(Student::className(), ['id' => 'student_id']);
+    return $this->hasOne(Students::className(), ['id' => 'student_id']);
 }
 
 public function getClass()
