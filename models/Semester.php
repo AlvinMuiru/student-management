@@ -63,4 +63,9 @@ class Semester extends ActiveRecord
     {
         return $this->hasOne(AcademicYear::class, ['id' => 'academic_year_id']);
     }
+    public static function getActiveSemester()
+{
+    return self::find()->where(['status' => 'active'])->one();
+}
+
 }

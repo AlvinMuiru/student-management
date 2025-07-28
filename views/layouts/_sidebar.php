@@ -28,7 +28,11 @@ use yii\helpers\Url;
                             <?= Html::a('My Fees', ['/student-fee/index']) ?>
                           </li>
 
-                         
+                          <li class="<?= Yii::$app->controller->id == 'exam' ? 'active' : '' ?>">
+                             <?= Html::a('<i class="fas fa-calendar-check"></i> <span>My Exam Schedule</span>', ['/exam/my-schedule']) ?>
+                          </li>
+
+
 
 
                     <?php elseif (Yii::$app->user->identity->role === 'teacher'): ?>

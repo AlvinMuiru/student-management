@@ -183,68 +183,7 @@ class ClassModelController extends Controller
         throw new NotFoundHttpException('The requested page does not exist.');
     }
 
-   public function actionEnroll($id)
-{
-    if (!Yii::$app->user->can('admin')) {
-        throw new \yii\web\ForbiddenHttpException("Only admins can enroll students.");
-    }
-
-    $class = $this->findModel($id);
-    $semesterId = $class->semester_id;
-
-    // Get students in the same course who are NOT already enrolled in another class in this semester
-    $enrolledStudentIds = ClassAssignment::find()
-        ->select('student_id')
-        ->leftJoin('classes', 'classes.id = class_assignments.class_id')
-        ->where(['classes.semester_id' => $semesterId])
-        ->column();
-
-    $students = Students::find()
-        ->where(['course_id' => $class->course_id])
-        ->andWhere(['not in', 'id', $enrolledStudentIds]) // prevent double enrollment in same semester
-        ->all();
-
-    $allStudents = [];
-    foreach ($students as $student) {
-        $allStudents[$student->id] = $student->first_name . ' ' . $student->last_name . ($student->reg_no ? " ({$student->reg_no})" : '');
-    }
-
-    $currentStudents = ClassAssignment::find()
-        ->select('student_id')
-        ->where(['class_id' => $id])
-        ->column();
-
-    if (Yii::$app->request->isPost) {
-        $selectedStudents = Yii::$app->request->post('students', []);
-
-        $transaction = Yii::$app->db->beginTransaction();
-        try {
-            ClassAssignment::deleteAll(['class_id' => $id]);
-
-            foreach ($selectedStudents as $studentId) {
-                $assignment = new ClassAssignment();
-                $assignment->class_id = $id;
-                $assignment->student_id = $studentId;
-                $assignment->date_assigned = date('Y-m-d');
-                $assignment->save();
-            }
-
-            $transaction->commit();
-            Yii::$app->session->setFlash('success', 'Students enrolled successfully.');
-            return $this->redirect(['view', 'id' => $id]);
-        } catch (\Exception $e) {
-            $transaction->rollBack();
-            Yii::$app->session->setFlash('error', 'Failed to enroll students.');
-        }
-    }
-
-    return $this->render('enroll', [
-        'class' => $class,
-        'allStudents' => $allStudents,
-        'currentStudents' => $currentStudents,
-    ]);
-}
-
+  
 public function actionAssignGrade($classId)
 {
     $class = $this->findModel($classId);
@@ -313,6 +252,85 @@ public function actionAvailable()
 
     return $this->render('available', [
         'classes' => $classes,
+    ]);
+}
+public function actionEnroll($id)
+{
+    if (!Yii::$app->user->can('admin')) {
+        throw new \yii\web\ForbiddenHttpException("Only admins can enroll students.");
+    }
+
+    $class = $this->findModel($id);
+    $semesterId = $class->semester_id;
+
+    // Step 1: Get students already enrolled in this specific class
+    $currentStudents = ClassAssignment::find()
+        ->select('student_id')
+        ->where(['class_id' => $id])
+        ->column();
+
+    // Step 2: Get students enrolled in other classes in the same course & semester
+    $enrolledInSameCourseSemester = ClassAssignment::find()
+        ->select('student_id')
+        ->leftJoin('classes', 'classes.id = class_assignments.class_id')
+        ->where([
+            'classes.semester_id' => $semesterId,
+            'classes.course_id' => $class->course_id,
+        ])
+        ->andWhere(['not in', 'class_assignments.student_id', $currentStudents]) // exclude current class students
+        ->column();
+
+    // Step 3: Get all students in this course who are either:
+    // - not enrolled in any class in the same course & semester
+    // - OR already enrolled in this class
+    $students = Students::find()
+        ->where(['course_id' => $class->course_id])
+      //  ->andWhere([
+         //   'or',
+           // ['not in', 'id', $enrolledInSameCourseSemester],
+            //['id' => $currentStudents],
+        //])
+        ->where(['course_id' => $class->course_id])
+
+        ->all();
+
+    // Step 4: Build the list for the checkbox labels
+    $allStudents = [];
+    foreach ($students as $student) {
+        $allStudents[$student->id] = $student->first_name . ' ' . $student->last_name . ($student->reg_no ? " ({$student->reg_no})" : '');
+    }
+
+    // Step 5: Handle form submission
+    if (Yii::$app->request->isPost) {
+        $selectedStudents = Yii::$app->request->post('students', []);
+
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            // Remove previous assignments
+            ClassAssignment::deleteAll(['class_id' => $id]);
+
+            // Reassign selected students
+            foreach ($selectedStudents as $studentId) {
+                $assignment = new ClassAssignment();
+                $assignment->class_id = $id;
+                $assignment->student_id = $studentId;
+                $assignment->date_assigned = date('Y-m-d');
+                $assignment->save();
+            }
+
+            $transaction->commit();
+            Yii::$app->session->setFlash('success', 'Students enrolled successfully.');
+            return $this->redirect(['view', 'id' => $id]);
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            Yii::$app->session->setFlash('error', 'Failed to enroll students.');
+        }
+    }
+
+    return $this->render('enroll', [
+        'class' => $class,
+        'allStudents' => $allStudents,
+        'currentStudents' => $currentStudents,
     ]);
 }
 

@@ -11,6 +11,14 @@ $this->title = 'Student Dashboard - ' . $student->fullName;
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 
+<?php foreach (Yii::$app->session->getAllFlashes() as $type => $message): ?>
+    <div class="alert alert-<?= $type ?> alert-dismissible fade show" role="alert">
+        <?= $message ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endforeach; ?>
+
+
 <div class="dashboard-index">
     <div class="content">
         <div class="container-fluid">

@@ -109,10 +109,12 @@ public function actionPay($id)
 {
     $studentFee = StudentFee::findOne($id);
 
+    // ✅ Ensure only the logged-in student can access
     if (!$studentFee || $studentFee->student_id !== Yii::$app->user->identity->student->id) {
         throw new \yii\web\ForbiddenHttpException('You are not allowed to access this payment.');
     }
 
+    // ✅ Prevent double payment
     if ($studentFee->status === 'paid') {
         Yii::$app->session->setFlash('info', 'This fee is already paid.');
         return $this->redirect(['index']);
@@ -120,12 +122,21 @@ public function actionPay($id)
 
     $fee = $studentFee->fee;
 
+    // ✅ Auto-detect and set active semester
+    $activeSemester = \app\models\Semester::find()->where(['status' => 'active'])->one();
+    if (!$activeSemester) {
+        Yii::$app->session->setFlash('error', 'No active semester found. Cannot proceed with payment.');
+        return $this->redirect(['index']);
+    }
+    $studentFee->semester_id = $activeSemester->id;
+
+    // ✅ Set payment details
     $studentFee->amount_paid = $fee->amount;
     $studentFee->status = 'paid';
     $studentFee->paid_at = date('Y-m-d H:i:s');
-    $studentFee->receipt_path = null;
+    $studentFee->receipt_path = null; // Optional: regenerate receipt after
 
-    if ($studentFee->save(false)) { // ✅ Force saving all attributes including receipt_number
+    if ($studentFee->save(false)) {
         Yii::$app->session->setFlash('success', 'Payment successful.');
     } else {
         Yii::$app->session->setFlash('error', 'Payment failed.');
@@ -133,7 +144,6 @@ public function actionPay($id)
 
     return $this->redirect(['index']);
 }
-
 
 public function actionDelete($id)
 {
@@ -174,11 +184,23 @@ public function actionAdminLogs()
 }
  public function actionSimulate($id)
 {
-    $model = $this->findModel($id); // Define findModel() in this controller
+    $model = $this->findModel($id); // assumes findModel returns StudentFee
 
     if ($model->load(Yii::$app->request->post())) {
+        // ✅ Auto-set paid_at if status changed to 'paid'
         if ($model->status === 'paid' && empty($model->paid_at)) {
             $model->paid_at = date('Y-m-d H:i:s');
+        }
+
+        // ✅ Auto-set semester_id if not already set
+        if (empty($model->semester_id)) {
+            $activeSemester = \app\models\Semester::find()->where(['status' => 'active'])->one();
+            if ($activeSemester) {
+                $model->semester_id = $activeSemester->id;
+            } else {
+                Yii::$app->session->setFlash('error', 'No active semester found. Cannot simulate payment.');
+                return $this->redirect(['student-fee/index']);
+            }
         }
 
         if ($model->save(false)) {
@@ -189,6 +211,7 @@ public function actionAdminLogs()
 
     return $this->render('pay', ['model' => $model]);
 }
+
 
 protected function findModel($id)
 {

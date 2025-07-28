@@ -55,26 +55,61 @@ class GradeController extends Controller
     }
 
     public function actionAssign($studentId, $classId)
-    {
-        $model = new AssignGradeForm();
-        $model->student_id = $studentId;
-        $model->class_id = $classId;
+{
+    $class = \app\models\ClassModel::findOne($classId);
+    $student = \app\models\Student::findOne($studentId);
 
-        $existingGrade = Grade::findOne(['student_id' => $studentId, 'class_id' => $classId]);
-        if ($existingGrade) {
-            $model->cat_score = $existingGrade->cat_score;
-            $model->exam_score = $existingGrade->exam_score;
-        }
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Grade assigned successfully.');
-            return $this->redirect(['classes/view', 'id' => $classId]); // Or appropriate redirect
-        }
-
-        return $this->render('assign', [
-            'model' => $model,
-        ]);
+    // 1. Ensure both class and student exist
+    if (!$class || !$student) {
+        throw new \yii\web\NotFoundHttpException('Class or student not found.');
     }
+
+    // 2. Ensure class has a semester
+    if (!$class->semester_id) {
+        Yii::$app->session->setFlash('error', 'Semester information is missing for this class.');
+        return $this->redirect(['classes/view', 'id' => $classId]);
+    }
+
+    // 3. Check if student has cleared fees for the class's semester
+    $hasPaid = \app\models\StudentFee::find()
+        ->where([
+            'student_id' => $student->id,
+            'semester_id' => $class->semester_id,
+            'status' => 'paid',
+        ])
+        ->exists();
+
+    if (!$hasPaid) {
+        Yii::$app->session->setFlash('error', 'This student has not cleared fees for the semester. Grade assignment is blocked.');
+        return $this->redirect(['classes/view', 'id' => $classId]);
+    }
+
+    // 4. Proceed with grade assignment
+    $model = new \app\models\forms\AssignGradeForm();
+    $model->student_id = $studentId;
+    $model->class_id = $classId;
+
+    // Load existing grade if any
+    $existingGrade = \app\models\Grade::findOne([
+        'student_id' => $studentId,
+        'class_id' => $classId,
+    ]);
+
+    if ($existingGrade) {
+        $model->cat_score = $existingGrade->cat_score;
+        $model->exam_score = $existingGrade->exam_score;
+    }
+
+    if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        Yii::$app->session->setFlash('success', 'Grade assigned successfully.');
+        return $this->redirect(['classes/view', 'id' => $classId]);
+    }
+
+    return $this->render('assign', [
+        'model' => $model,
+    ]);
+}
+
 
     public function actionRegisterRetake($id)
     {

@@ -97,7 +97,43 @@ class ExamController extends Controller
         ]);
     }
      
-    
+    public function actionMySchedule()
+{
+    $userId = Yii::$app->user->id;
+    $student = \app\models\Students::findOne(['user_id' => $userId]);
+
+    // 1. Check if student exists
+    if (!$student) {
+        throw new \yii\web\NotFoundHttpException("Student profile not found.");
+    }
+
+    // 2. Check fee clearance (adjust logic if using semester filtering)
+    $hasClearedFees = \app\models\StudentFee::find()
+        ->where(['student_id' => $student->id, 'status' => 'paid']) // or use constant
+        ->exists();
+
+    if (!$hasClearedFees) {
+        Yii::$app->session->setFlash('error', 'You must clear your fees to view your exam schedule.');
+        return $this->redirect(['dashboard/index']);
+    }
+
+    // 3. Get enrolled class IDs
+    $classIds = \app\models\ClassAssignment::find()
+        ->select('class_id')
+        ->where(['student_id' => $student->id])
+        ->column();
+
+    // 4. Get exams for those classes
+    $exams = \app\models\ExamSchedule::find()
+        ->where(['class_id' => $classIds])
+        ->orderBy(['exam_date' => SORT_ASC])
+        ->all();
+
+    return $this->render('my-schedule', [
+        'exams' => $exams,
+    ]);
+}
+
     protected function findModel($id)
     {
         if (($model = ExamSchedule::findOne($id)) !== null) {
