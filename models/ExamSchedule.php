@@ -16,8 +16,8 @@ class ExamSchedule extends ActiveRecord
     public function rules()
     {
         return [
-            [['class_id', 'semester_id', 'exam_date', 'start_time', 'end_time', 'venue'], 'required'],
-            [['class_id', 'semester_id'], 'integer'],
+            [['class_id', 'semester_id', 'exam_date', 'start_time', 'end_time', 'venue','invigilator_id'], 'required'],
+            [['class_id', 'semester_id','invigilator_id'], 'integer'],
             [['exam_date', 'start_time', 'end_time'], 'safe'],
             [['venue'], 'string', 'max' => 255],
         ];
@@ -33,9 +33,10 @@ class ExamSchedule extends ActiveRecord
         return $this->hasOne(Semester::class, ['id' => 'semester_id']);
     }
 
-    public function getInvigilators()
+   
+    public function getInvigilator()
     {
-        return $this->hasMany(ExamInvigilator::class, ['exam_schedule_id' => 'id']);
+        return $this->hasOne(\app\models\User::class, ['id' => 'invigilator_id']);
     }
 
     public function getAttendances()

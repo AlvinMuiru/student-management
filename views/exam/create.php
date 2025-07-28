@@ -14,6 +14,10 @@ $form = ActiveForm::begin(); ?>
     \yii\helpers\ArrayHelper::map($semesters, 'id', 'name'),
     ['prompt' => 'Select Semester']
 ) ?>
+<?= $form->field($model, 'invigilator_id')->dropDownList(
+    \yii\helpers\ArrayHelper::map($invigilators, 'id', 'username'), // or use full name if available
+    ['prompt' => 'Select Invigilator']
+) ?>
 
 <?= $form->field($model, 'exam_date')->input('date') ?>
 <?= $form->field($model, 'start_time')->input('time') ?>

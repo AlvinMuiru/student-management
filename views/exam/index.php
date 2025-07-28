@@ -22,6 +22,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     <th>Semester</th>
                     <th>Exam Date</th>
                     <th>Time</th>
+                    <th>Invigilator</th>
                     <th>Venue</th>
                     <th>Actions</th>
                 </tr>
@@ -38,6 +39,12 @@ $this->params['breadcrumbs'][] = $this->title;
                         </td>
                         <td><?= Html::encode($exam->exam_date) ?></td>
                         <td><?= Html::encode("{$exam->start_time} - {$exam->end_time}") ?></td>
+                       <td>
+                          <?= $exam->invigilator && $exam->invigilator->teacher 
+                          ? $exam->invigilator->teacher->first_name . ' ' . $exam->invigilator->teacher->last_name 
+                          : 'N/A' ?>
+                       </td>
+
                         <td><?= Html::encode($exam->venue) ?></td>
                         <td>
                              <?= Html::a('Record Attendance', ['exam-attendance/index', 'schedule_id' => $exam->id], ['class' => 'btn btn-success']) ?>

@@ -71,5 +71,14 @@ public function getTeacher()
     return $this->hasOne(Teacher::class, ['user_id' => 'id']);
 }
 
+public function getFirstName()
+{
+    return $this->teacher ? $this->teacher->first_name : null;
+}
+
+public function getLastName()
+{
+    return $this->teacher ? $this->teacher->last_name : null;
+}
 
 }

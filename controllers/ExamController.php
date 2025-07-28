@@ -9,6 +9,7 @@ use yii\web\NotFoundHttpException;
 use app\models\ExamSchedule;
 use app\models\ClassModel;
 use app\models\Semester;
+use app\models\User;
 
 class ExamController extends Controller
 {
@@ -38,21 +39,56 @@ class ExamController extends Controller
     ]);
 }
 
-    public function actionCreate()
-    {
-        $model = new ExamSchedule();
+   public function actionCreate()
+{
+    $model = new ExamSchedule();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Exam created successfully.');
-            return $this->redirect(['index']);
+    if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        Yii::debug("✅ Saved exam with invigilator user_id: " . $model->invigilator_id);
+
+        if (!$model->invigilator_id) {
+            Yii::debug("⚠️ No invigilator_id found in POST data");
+        } else {
+            // 🔁 Convert user_id to teacher_id
+            $teacher = \app\models\Teacher::find()->where(['user_id' => $model->invigilator_id])->one();
+
+            if ($teacher) {
+                // ✅ Check if already exists
+                $exists = \app\models\ExamInvigilator::find()
+                    ->where([
+                        'exam_schedule_id' => $model->id,
+                        'teacher_id' => $teacher->id
+                    ])
+                    ->exists();
+
+                if (!$exists) {
+                    $invigilator = new \app\models\ExamInvigilator();
+                    $invigilator->exam_schedule_id = $model->id;
+                    $invigilator->teacher_id = $teacher->id;
+                    $invigilator->assigned_at = date('Y-m-d H:i:s');
+
+                    if (!$invigilator->save()) {
+                        Yii::error('❌ Failed to save ExamInvigilator: ' . print_r($invigilator->errors, true));
+                        var_dump($invigilator->errors);
+                        exit;
+                    }
+                }
+            } else {
+                Yii::error("❌ No teacher found with user_id = {$model->invigilator_id}");
+            }
         }
 
-        return $this->render('create', [
-            'model' => $model,
-            'classes' => ClassModel::find()->all(),
-            'semesters' => Semester::find()->all(),
-        ]);
+        Yii::$app->session->setFlash('success', '✅ Exam created successfully.');
+        return $this->redirect(['index']);
     }
+
+    return $this->render('create', [
+        'model' => $model,
+        'classes' => ClassModel::find()->all(),
+        'semesters' => Semester::find()->all(),
+        'invigilators' => User::find()->where(['role' => 'teacher'])->all(),
+    ]);
+}
 
     public function actionView($id)
     {
@@ -60,7 +96,8 @@ class ExamController extends Controller
             'model' => $this->findModel($id),
         ]);
     }
-
+     
+    
     protected function findModel($id)
     {
         if (($model = ExamSchedule::findOne($id)) !== null) {
