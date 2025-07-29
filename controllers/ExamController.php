@@ -89,6 +89,34 @@ class ExamController extends Controller
         'invigilators' => User::find()->where(['role' => 'teacher'])->all(),
     ]);
 }
+ public function actionUpdate($id)
+{
+    $model = $this->findModel($id);
+
+    // Fetch data for dropdowns
+    $classes = \app\models\ClassModel::find()->all();
+    $semesters = \app\models\Semester::find()->all();
+    $invigilators = \app\models\User::find()->where(['role' => 'Teacher'])->all();
+
+    if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        return $this->redirect(['index']);
+    }
+
+    return $this->render('update', [
+        'model' => $model,
+        'classes' => $classes,
+        'semesters' => $semesters,
+        'invigilators' => $invigilators,
+    ]);
+}
+
+
+public function actionDelete($id)
+{
+    $this->findModel($id)->delete();
+    return $this->redirect(['index']);
+}
+
 
     public function actionView($id)
     {

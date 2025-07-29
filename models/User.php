@@ -13,6 +13,15 @@ class User extends ActiveRecord implements IdentityInterface
         return 'users'; // match your table name
     }
 
+    public function rules()
+{
+    return [
+        [['username'], 'string'],
+        [['username'], 'required'],
+        // other rules
+    ];
+}
+
     public static function findIdentity($id)
     {
         return static::findOne($id);

@@ -1,13 +1,14 @@
 <?php
 
+use yii\helpers\Html;
+
 /** @var yii\web\View $this */
 /** @var app\models\ExamSchedule[] $exams */
-
-use yii\helpers\Html;
 
 $this->title = 'Exam Schedules';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
+
 <div class="exam-index">
     <h1><?= Html::encode($this->title) ?></h1>
 
@@ -20,10 +21,11 @@ $this->params['breadcrumbs'][] = $this->title;
                     <th>#</th>
                     <th>Class</th>
                     <th>Semester</th>
-                    <th>Exam Date</th>
-                    <th>Time</th>
-                    <th>Invigilator</th>
+                    <th>Date</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
                     <th>Venue</th>
+                    <th>Invigilator</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -31,29 +33,28 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?php foreach ($exams as $index => $exam): ?>
                     <tr>
                         <td><?= $index + 1 ?></td>
-                        <td>
-                            <?= $exam->class ? Html::encode($exam->class->class_name) : 'N/A' ?>
-                        </td>
-                        <td>
-                            <?= $exam->semester ? Html::encode($exam->semester->name) : 'N/A' ?>
-                        </td>
+                        <td><?= Html::encode($exam->class->class_name ?? '-') ?></td>
+                        <td><?= Html::encode($exam->semester->name ?? '-') ?></td>
                         <td><?= Html::encode($exam->exam_date) ?></td>
-                        <td><?= Html::encode("{$exam->start_time} - {$exam->end_time}") ?></td>
-                       <td>
-                          <?= $exam->invigilator && $exam->invigilator->teacher 
-                          ? $exam->invigilator->teacher->first_name . ' ' . $exam->invigilator->teacher->last_name 
-                          : 'N/A' ?>
-                       </td>
-
+                        <td><?= Html::encode($exam->start_time) ?></td>
+                        <td><?= Html::encode($exam->end_time) ?></td>
                         <td><?= Html::encode($exam->venue) ?></td>
+                        <td><?= Html::encode($exam->invigilator->username) ?></td>
                         <td>
-                             <?= Html::a('Record Attendance', ['exam-attendance/index', 'schedule_id' => $exam->id], ['class' => 'btn btn-success']) ?>
+                            <?= Html::a('Update', ['update', 'id' => $exam->id], ['class' => 'btn btn-sm btn-primary']) ?>
+                            <?= Html::a('Delete', ['delete', 'id' => $exam->id], [
+                                'class' => 'btn btn-sm btn-danger',
+                                'data' => [
+                                    'confirm' => 'Are you sure you want to delete this exam?',
+                                    'method' => 'post',
+                                ],
+                            ]) ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
     <?php else: ?>
-        <p>No exams found.</p>
+        <p>No exam schedules found.</p>
     <?php endif; ?>
 </div>

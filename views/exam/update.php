@@ -8,10 +8,10 @@ use yii\helpers\Html;
 /** @var array $semesters */
 /** @var array $invigilators */
 
-$this->title = 'Create Exam Schedule';
+$this->title = 'Update Exam Schedule';
 ?>
 
-<div class="exam-create container">
+<div class="exam-update container">
     <h1><?= Html::encode($this->title) ?></h1>
     <?= $this->render('_form', [
         'model' => $model,
