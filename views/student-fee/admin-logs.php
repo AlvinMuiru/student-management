@@ -96,13 +96,6 @@ $this->params['breadcrumbs'][] = $this->title;
                 },
             ],
         ],
-        [
-    'label' => 'Simulate',
-    'format' => 'raw',
-    'value' => function($model) {
-        return Html::a('Simulate', ['student-fee/simulate', 'id' => $model->id], ['class' => 'btn btn-sm btn-primary']);
-    },
-],
 
     ],
 ]); ?>

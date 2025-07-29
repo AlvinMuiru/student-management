@@ -184,34 +184,54 @@ public function actionAdminLogs()
 }
  public function actionSimulate($id)
 {
-    $model = $this->findModel($id); // assumes findModel returns StudentFee
+    $model = $this->findModel($id);
+
+    // ✅ Ensure only the logged-in student can access
+    if (!$model || $model->student_id !== Yii::$app->user->identity->student->id) {
+        throw new \yii\web\ForbiddenHttpException('You are not allowed to simulate this payment.');
+    }
+
+    // ✅ Prevent re-simulation of already paid fees
+    if ($model->status === 'paid') {
+        Yii::$app->session->setFlash('info', 'This fee has already been marked as paid.');
+        return $this->redirect(['index']);
+    }
 
     if ($model->load(Yii::$app->request->post())) {
-        // ✅ Auto-set paid_at if status changed to 'paid'
-        if ($model->status === 'paid' && empty($model->paid_at)) {
-            $model->paid_at = date('Y-m-d H:i:s');
-        }
+        // ✅ Set status to 'paid' automatically
+        $model->status = 'paid';
 
-        // ✅ Auto-set semester_id if not already set
+        // ✅ Generate fake transaction reference
+        $model->transaction_ref = 'SIM-' . strtoupper(Yii::$app->security->generateRandomString(8));
+
+        // ✅ Set current timestamp
+        $model->paid_at = date('Y-m-d H:i:s');
+
+        // ✅ Set semester if not set
         if (empty($model->semester_id)) {
             $activeSemester = \app\models\Semester::find()->where(['status' => 'active'])->one();
-            if ($activeSemester) {
-                $model->semester_id = $activeSemester->id;
-            } else {
+            if (!$activeSemester) {
                 Yii::$app->session->setFlash('error', 'No active semester found. Cannot simulate payment.');
-                return $this->redirect(['student-fee/index']);
+                return $this->redirect(['index']);
             }
+            $model->semester_id = $activeSemester->id;
+        }
+
+        // ✅ Clear bank name for MPesa or PayPal
+        if (in_array($model->payment_method, ['mpesa', 'paypal'])) {
+            $model->bank_name = null;
         }
 
         if ($model->save(false)) {
-            Yii::$app->session->setFlash('success', 'Payment submitted successfully.');
-            return $this->redirect(['student-fee/index']);
+            Yii::$app->session->setFlash('success', 'Payment simulated successfully.');
+            return $this->redirect(['index']);
+        } else {
+            Yii::$app->session->setFlash('error', 'Failed to simulate payment.');
         }
     }
 
     return $this->render('pay', ['model' => $model]);
 }
-
 
 protected function findModel($id)
 {

@@ -8,6 +8,8 @@ $this->title = 'Simulate Payment';
 <div class="student-fee-pay box box-primary p-3">
     <h3><?= Html::encode($this->title) ?></h3>
 
+    <p>Please confirm your payment method to simulate payment. Transaction details will be auto-generated.</p>
+
     <?php $form = ActiveForm::begin(); ?>
 
     <?= $form->field($model, 'payment_method')->dropDownList([
@@ -18,17 +20,11 @@ $this->title = 'Simulate Payment';
         'absa' => 'ABSA',
     ], ['prompt' => 'Select Payment Method']) ?>
 
-    <?= $form->field($model, 'bank_name')->textInput(['placeholder' => 'If applicable']) ?>
+    <?= $form->field($model, 'bank_name')->textInput(['placeholder' => 'If applicable (leave blank for M-Pesa/PayPal)']) ?>
 
-    <?= $form->field($model, 'transaction_ref')->textInput(['maxlength' => true]) ?>
-
-    <?= $form->field($model, 'status')->dropDownList([
-        'pending' => 'Pending',
-        'paid' => 'Paid',
-    ]) ?>
 
     <div class="form-group">
-        <?= Html::submitButton('Pay Now', ['class' => 'btn btn-success']) ?>
+        <?= Html::submitButton('Simulate Payment', ['class' => 'btn btn-success']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>
