@@ -69,7 +69,8 @@ public function signup()
         if ($user->role === 'teacher') {
             $teacher = new Teacher();
             $teacher->user_id = $user->id;
-            $teacher->name = $user->username;
+            $teacher->first_name = $user->username;
+            $teacher->last_name = 'LastName'; 
 
             if (!$teacher->save()) {
                 Yii::error("Failed to create teacher: " . json_encode($teacher->getErrors()), __METHOD__);
