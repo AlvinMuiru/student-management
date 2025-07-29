@@ -72,7 +72,7 @@ $this->params['breadcrumbs'][] = $this->title;
         [
             'label' => 'Amount Paid (KES)',
             'value' => function ($model) {
-                return number_format($model->amount_paid, 2);
+                return $model->fee ? $model->fee->amount : 'N/A';
             }
         ],
         'status',

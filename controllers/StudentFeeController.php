@@ -159,8 +159,16 @@ public function actionDelete($id)
 }
 public function actionDownloadReceipt($id)
 {
-    $student = Yii::$app->user->identity->student;
-    $studentFee = StudentFee::findOne(['id' => $id, 'student_id' => $student->id]);
+    // Check if user has a related student record (i.e., is a student)
+    $student = Yii::$app->user->identity->student ?? null;
+
+    if ($student) {
+        // Student trying to download their own receipt
+        $studentFee = StudentFee::findOne(['id' => $id, 'student_id' => $student->id]);
+    } else {
+        // Admin or non-student user – allow downloading any valid paid receipt
+        $studentFee = StudentFee::findOne(['id' => $id]);
+    }
 
     if (!$studentFee || $studentFee->status !== 'paid') {
         throw new \yii\web\NotFoundHttpException('Receipt unavailable.');
@@ -168,10 +176,11 @@ public function actionDownloadReceipt($id)
 
     $content = $this->renderPartial('receipt', ['model' => $studentFee]);
 
-     $mpdf = new Mpdf();
-     $mpdf->WriteHTML($content);
-     return $mpdf->Output("receipt_{$id}.pdf", 'D'); 
+    $mpdf = new \Mpdf\Mpdf();
+    $mpdf->WriteHTML($content);
+    return $mpdf->Output("receipt_{$id}.pdf", \Mpdf\Output\Destination::DOWNLOAD);
 }
+
 public function actionAdminLogs()
 {
     $searchModel = new \app\models\StudentFeeSearch();
