@@ -20,20 +20,23 @@ $this->title = 'Assign Grade: ' . $class->class_name;
 
     <div class="card-body">
         <?php $form = ActiveForm::begin(); ?>
+   
+    <?= $form->field($model, 'student_id')->dropDownList(
+    ArrayHelper::map(
+    \app\models\Students::find()
+        ->alias('s')
+        ->innerJoin('class_assignments ca', 'ca.student_id = s.id AND ca.class_id = :classId', [':classId' => $class->id])
+        ->innerJoin('exam_attendance ea', 'ea.student_id = s.id AND ea.status = "Present"')
+        ->innerJoin('exam_schedules es', 'es.id = ea.exam_schedule_id AND es.class_id = :classId2', [':classId2' => $class->id])
+        ->groupBy('s.id')
+        ->all(),
+    'id',
+    fn($student) => $student->first_name . ' ' . $student->last_name . ' (' . $student->reg_no . ')'
+),
+    ['prompt' => 'Select a student']
+) ?>
 
-        <?= $form->field($model, 'student_id')->dropDownList(
-            ArrayHelper::map(
-                Students::find()
-                    ->joinWith('classAssignments')
-                    ->where(['class_assignments.class_id' => $class->id])
-                    ->all(),
-                'id',
-                function ($student) {
-                    return $student->first_name . ' ' . $student->last_name . ' (' . $student->reg_no . ')';
-                }
-            ),
-            ['prompt' => 'Select a student']
-        ) ?>
+
 
         <?= $form->field($model, 'cat_score')->textInput(['type' => 'number', 'step' => 'any', 'id' => 'cat']) ?>
         <?= $form->field($model, 'exam_score')->textInput(['type' => 'number', 'step' => 'any', 'id' => 'exam']) ?>

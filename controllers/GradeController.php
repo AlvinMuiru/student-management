@@ -54,7 +54,7 @@ class GradeController extends Controller
         ]);
     }
 
-    public function actionAssign($studentId, $classId)
+   public function actionAssign($studentId, $classId)
 {
     $class = \app\models\ClassModel::findOne($classId);
     $student = \app\models\Student::findOne($studentId);
@@ -84,7 +84,21 @@ class GradeController extends Controller
         return $this->redirect(['classes/view', 'id' => $classId]);
     }
 
-    // 4. Proceed with grade assignment
+    // 4. Check if student attended the exam
+    $attended = \app\models\ExamAttendance::find()
+        ->where([
+            'student_id' => $student->id,
+            'class_id' => $class->id,
+            'status' => 'present', // adjust if your actual value is different
+        ])
+        ->exists();
+
+    if (!$attended) {
+        Yii::$app->session->setFlash('error', 'This student was absent for the exam. Grade assignment is blocked.');
+        return $this->redirect(['classes/view', 'id' => $classId]);
+    }
+
+    // 5. Proceed with grade assignment
     $model = new \app\models\forms\AssignGradeForm();
     $model->student_id = $studentId;
     $model->class_id = $classId;
@@ -109,6 +123,7 @@ class GradeController extends Controller
         'model' => $model,
     ]);
 }
+
 
 
     public function actionRegisterRetake($id)
