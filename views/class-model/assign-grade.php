@@ -28,6 +28,7 @@ $this->title = 'Assign Grade: ' . $class->class_name;
         ->innerJoin('class_assignments ca', 'ca.student_id = s.id AND ca.class_id = :classId', [':classId' => $class->id])
         ->innerJoin('exam_attendance ea', 'ea.student_id = s.id AND ea.status = "Present"')
         ->innerJoin('exam_schedules es', 'es.id = ea.exam_schedule_id AND es.class_id = :classId2', [':classId2' => $class->id])
+        ->innerJoin('student_fees sf', 'sf.student_id = s.id AND sf.status = "paid"')
         ->groupBy('s.id')
         ->all(),
     'id',
