@@ -11,6 +11,9 @@ use app\models\forms\AssignGradeForm;
 use app\components\SemesterHelper;
 use app\models\RetakeRequest;
 use app\models\ClassModel;
+use app\models\Students;
+use yii\helpers\ArrayHelper;
+use app\models\ExamAttendance;
 class GradeController extends Controller
 {
     public function actionIndex()
@@ -57,7 +60,7 @@ class GradeController extends Controller
    public function actionAssign($studentId, $classId)
 {
     $class = \app\models\ClassModel::findOne($classId);
-    $student = \app\models\Student::findOne($studentId);
+    $student = \app\models\Students::findOne($studentId);
 
     if (!$class || !$student) {
         throw new \yii\web\NotFoundHttpException('Class or student not found.');
@@ -68,6 +71,7 @@ class GradeController extends Controller
         return $this->redirect(['classes/view', 'id' => $classId]);
     }
 
+    // ✅ Check if student has paid fees for this semester
     $hasPaid = \app\models\StudentFee::find()
         ->where([
             'student_id' => $student->id,
@@ -81,6 +85,7 @@ class GradeController extends Controller
         return $this->redirect(['classes/view', 'id' => $classId]);
     }
 
+    // ✅ Check if student attended the exam
     $attended = \app\models\ExamAttendance::find()
         ->where([
             'student_id' => $student->id,
@@ -94,10 +99,12 @@ class GradeController extends Controller
         return $this->redirect(['classes/view', 'id' => $classId]);
     }
 
+    // ✅ Prepare the form
     $model = new \app\models\forms\AssignGradeForm();
     $model->student_id = $studentId;
     $model->class_id = $classId;
 
+    // ✅ Preload existing grade (if any)
     $existingGrade = \app\models\Grade::findOne([
         'student_id' => $studentId,
         'class_id' => $classId,
@@ -108,8 +115,8 @@ class GradeController extends Controller
         $model->exam_score = $existingGrade->exam_score;
     }
 
+    // ✅ Handle form submission
     if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-        // Calculate final weighted score
         $finalScore = (0.3 * $model->cat_score) + (0.7 * $model->exam_score);
 
         if (!$existingGrade) {
@@ -123,10 +130,10 @@ class GradeController extends Controller
         $existingGrade->score = $finalScore;
 
         if ($existingGrade->save()) {
-            // ✅ Optional Audit Logging
+            // ✅ Audit Log
             \app\components\AuditLogHelper::log(
                 'Assigned Grade',
-                "Assigned grade for student ID {$studentId} in class ID {$classId} (CAT: {$model->cat_score}, Exam: {$model->exam_score}, Final: {$finalScore})"
+                "Grade assigned for student ID {$studentId} in class ID {$classId} (CAT: {$model->cat_score}, Exam: {$model->exam_score}, Final Score: {$finalScore})"
             );
 
             Yii::$app->session->setFlash('success', 'Grade assigned successfully.');
@@ -138,6 +145,8 @@ class GradeController extends Controller
 
     return $this->render('assign', [
         'model' => $model,
+        'student' => $student,
+        'class' => $class,
     ]);
 }
 
