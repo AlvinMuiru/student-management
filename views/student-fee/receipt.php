@@ -24,7 +24,7 @@ $this->title = "Receipt";
 
     <p><strong>Amount:</strong>
         <?= $model->fee
-            ? 'KES ' . number_format($model->fee->amount, 2)
+            ? 'KES ' . number_format($model->fee->amount/2, 2)
             : '<span style="color:red;">[Amount Unknown]</span>' ?>
     </p>
 

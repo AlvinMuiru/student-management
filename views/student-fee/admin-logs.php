@@ -72,7 +72,7 @@ $this->params['breadcrumbs'][] = $this->title;
         [
             'label' => 'Amount Paid (KES)',
             'value' => function ($model) {
-                return $model->fee ? $model->fee->amount : 'N/A';
+                return $model->fee ? $model->fee->amount/2: 'N/A';
             }
         ],
         'status',

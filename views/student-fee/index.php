@@ -21,7 +21,7 @@ $this->params['breadcrumbs'][] = $this->title;
         [
             'label' => 'Amount (KES)',
             'value' => function ($model) {
-                return number_format($model->fee->amount ?? 0, 2);
+                return number_format($model->fee->amount/2 ?? 0, 2);
             }
         ],
         'status',
