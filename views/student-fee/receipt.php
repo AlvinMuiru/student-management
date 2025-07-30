@@ -21,7 +21,8 @@ $this->title = "Receipt";
             ? $model->fee->description
             : '<span style="color:red;">[Fee Deleted]</span>' ?>
     </p>
-
+     <p><strong>Academic Year:</strong> <?= $model->academicYear ? $model->academicYear->year_name : 'N/A' ?></p>
+     <p><strong>Semester:</strong> <?= $model->semester->name ?></p>
     <p><strong>Amount:</strong>
         <?= $model->fee
             ? 'KES ' . number_format($model->fee->amount/2, 2)

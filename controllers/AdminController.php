@@ -61,20 +61,24 @@ public function actionChartData()
     $unpaidData = [];
 
     foreach ($courses as $course) {
-        $paidCount = StudentFee::find()
-            ->alias('sf')
-            ->innerJoin('students s', 's.id = sf.student_id')
-            ->where(['s.course_id' => $course->id, 'sf.status' => 'paid'])
-            ->count();
+        $students = Students::find()->where(['course_id' => $course->id])->all();
+        $paidCount = 0;
+        $unpaidCount = 0;
 
-        $unpaidCount = StudentFee::find()
-            ->alias('sf')
-            ->innerJoin('students s', 's.id = sf.student_id')
-            ->where(['s.course_id' => $course->id, 'sf.status' => 'unpaid'])
-            ->count();
+        foreach ($students as $student) {
+            $paidFees = StudentFee::find()
+                ->where(['student_id' => $student->id, 'status' => 'paid'])
+                ->count();
 
-        $paidData[] = ['course' => $course->name, 'count' => (int)$paidCount];
-        $unpaidData[] = ['course' => $course->name, 'count' => (int)$unpaidCount];
+            if ($paidFees >= 2) { // assumes 2 semesters per academic year
+                $paidCount++;
+            } else {
+                $unpaidCount++;
+            }
+        }
+
+        $paidData[] = ['course' => $course->name, 'count' => $paidCount];
+        $unpaidData[] = ['course' => $course->name, 'count' => $unpaidCount];
     }
 
     return $this->asJson([

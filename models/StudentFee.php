@@ -135,5 +135,9 @@ class StudentFee extends ActiveRecord
 {
     return $this->hasOne(Semester::class, ['id' => 'semester_id']);
 }
+public function getAcademicYear()
+{
+    return $this->semester ? $this->semester->academicYear : null;
+}
 
 }
