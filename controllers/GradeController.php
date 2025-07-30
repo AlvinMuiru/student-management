@@ -14,8 +14,33 @@ use app\models\ClassModel;
 use app\models\Students;
 use yii\helpers\ArrayHelper;
 use app\models\ExamAttendance;
+
+use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
 class GradeController extends Controller
 {
+    public function behaviors()
+{
+    return [
+        'access' => [
+            'class' => AccessControl::class,
+            'only' => ['index', 'assign', 'get-scores'],
+            'rules' => [
+                [
+                    'allow' => true,
+                    'roles' => ['@'],
+                ],
+            ],
+        ],
+        'verbs' => [
+            'class' => VerbFilter::class,
+            'actions' => [
+                'get-scores' => ['GET'],
+                'delete' => ['POST'],
+            ],
+        ],
+    ];
+}
     public function actionIndex()
     {
         $student = Yii::$app->user->identity->student;
@@ -71,7 +96,7 @@ class GradeController extends Controller
         return $this->redirect(['classes/view', 'id' => $classId]);
     }
 
-    // ✅ Check if student has paid fees for this semester
+    // ✅ Check if student has paid semester fees
     $hasPaid = \app\models\StudentFee::find()
         ->where([
             'student_id' => $student->id,
@@ -99,12 +124,12 @@ class GradeController extends Controller
         return $this->redirect(['classes/view', 'id' => $classId]);
     }
 
-    // ✅ Prepare the form
+    // ✅ Prepare form
     $model = new \app\models\forms\AssignGradeForm();
     $model->student_id = $studentId;
     $model->class_id = $classId;
 
-    // ✅ Preload existing grade (if any)
+    // ✅ Load existing grade for editing
     $existingGrade = \app\models\Grade::findOne([
         'student_id' => $studentId,
         'class_id' => $classId,
@@ -115,7 +140,7 @@ class GradeController extends Controller
         $model->exam_score = $existingGrade->exam_score;
     }
 
-    // ✅ Handle form submission
+    // ✅ Handle submission
     if ($model->load(Yii::$app->request->post()) && $model->validate()) {
         $finalScore = (0.3 * $model->cat_score) + (0.7 * $model->exam_score);
 
@@ -130,13 +155,12 @@ class GradeController extends Controller
         $existingGrade->score = $finalScore;
 
         if ($existingGrade->save()) {
-            // ✅ Audit Log
             \app\components\AuditLogHelper::log(
-                'Assigned Grade',
-                "Grade assigned for student ID {$studentId} in class ID {$classId} (CAT: {$model->cat_score}, Exam: {$model->exam_score}, Final Score: {$finalScore})"
+                $existingGrade->isNewRecord ? 'Assigned Grade' : 'Updated Grade',
+                "Grade saved for student ID {$studentId} in class ID {$classId} (CAT: {$model->cat_score}, Exam: {$model->exam_score}, Final: {$finalScore})"
             );
 
-            Yii::$app->session->setFlash('success', 'Grade assigned successfully.');
+            Yii::$app->session->setFlash('success', 'Grade saved successfully.');
             return $this->redirect(['classes/view', 'id' => $classId]);
         }
 
@@ -178,4 +202,25 @@ class GradeController extends Controller
 
         return $this->redirect(['grade/index']);
     }
+   public function actionGetScores($studentId, $classId)
+{
+    Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+
+    $grade = \app\models\Grade::findOne([
+        'student_id' => $studentId,
+        'class_id' => $classId,
+    ]);
+
+    if ($grade) {
+        return [
+            'success' => true,
+            'cat_score' => $grade->cat_score,
+            'exam_score' => $grade->exam_score,
+        ];
+    }
+
+    return ['success' => false];
+}
+
+
 }
