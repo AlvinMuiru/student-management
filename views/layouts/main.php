@@ -5,23 +5,24 @@ use yii\helpers\Html;
 AdminLteAsset::register($this);
 $this->beginPage();
 
-// Actions where sidebar should be hidden
+// Define where sidebar or navbar should be hidden
 $noSidebarActions = ['landing', 'about', 'contact', 'login', 'signup'];
-
-// Actions where navbar should also be hidden (a smaller subset)
-$noNavbarActions = ['landing', 'about', 'contact'];
+$noNavbarActions = ['about', 'contact']; // Keep navbar for landing, login, signup
 
 $controller = Yii::$app->controller->id;
 $action = Yii::$app->controller->action->id;
 
 $hideSidebar = $controller === 'site' && in_array($action, $noSidebarActions);
 $hideNavbar  = $controller === 'site' && in_array($action, $noNavbarActions);
+
+// Optional: hide footer only on login/signup, not on landing
+$hideFooter = $controller === 'site' && in_array($action, ['login', 'signup']);
 ?>
 <!DOCTYPE html>
 <html lang="<?= Yii::$app->language ?>">
 <head>
     <meta charset="<?= Yii::$app->charset ?>">
-    <?= Html::csrfMetaTags() ?> 
+    <?= Html::csrfMetaTags() ?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= Html::encode($this->title) ?></title>
     <?php $this->head() ?>
@@ -45,13 +46,13 @@ $bodyClass = $hideSidebar ? 'hold-transition layout-top-nav' : 'hold-transition 
         <?= $this->render('_sidebar') ?>
     <?php endif; ?>
 
-    <!-- Content Wrapper. Contains page content -->
+    <!-- Content Wrapper -->
     <div class="content-wrapper p-3">
         <?= $content ?>
     </div>
 
     <!-- Footer -->
-    <?php if (!$hideSidebar): ?>
+    <?php if (!$hideFooter): ?>
         <footer class="main-footer text-center">
             <strong>&copy; <?= date('Y') ?> My Company.</strong> All rights reserved.
         </footer>
