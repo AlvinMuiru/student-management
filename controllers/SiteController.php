@@ -108,7 +108,8 @@ class SiteController extends Controller
     public function actionLogout()
     {
         Yii::$app->user->logout();
-        return $this->goHome();
+        return $this->redirect(['site/landing']);
+
     }
 
     /**
@@ -156,5 +157,9 @@ class SiteController extends Controller
     ]);
 }
 
+public function actionLanding()
+{
+    return $this->render('landing');
+}
 
 }
