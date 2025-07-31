@@ -14,6 +14,9 @@ $config = [
         '@npm'   => '@vendor/npm-asset',
     ],
     'components' => [
+       'auditTrail' => [
+        'class' => 'app\components\AuditTrail',
+    ],
     'semesterHelper' => [
         'class' => 'app\components\SemesterHelper',
 ],

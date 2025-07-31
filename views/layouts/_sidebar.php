@@ -99,6 +99,12 @@ use yii\helpers\Url;
                            <p>Exam Schedules</p>
                            </a>
                         </li>
+                      <li class="nav-item">
+                         <a href="<?= \yii\helpers\Url::to(['/audit-log/index']) ?>" class="nav-link">
+                         <i class="nav-icon fas fa-history"></i>
+                         <p>Audit Logs</p>
+                          </a>
+                         </li>
 
                     <?php endif; ?>
                 <?php endif; ?>

@@ -98,6 +98,7 @@ class ClassModelController extends Controller
                 }
             }
             $transaction->commit();
+            Yii::$app->auditTrail->log('create', 'created class', 'ClassModel', $model->id);
             Yii::$app->session->setFlash('success', 'Class created with student enrollments!');
             return $this->redirect(['view', 'id' => $model->id]);
         } catch (\Exception $e) {
@@ -186,6 +187,7 @@ class ClassModelController extends Controller
   
 public function actionAssignGrade($classId)
 {
+   
     $class = $this->findModel($classId);
 
     // Only allow the assigned teacher or admin
@@ -197,6 +199,7 @@ public function actionAssignGrade($classId)
     $students = $class->students; // Enrolled students
 
     if ($form->load(Yii::$app->request->post()) && $form->validate()) {
+       
         $grade = Grade::findOne([
             'student_id' => $form->student_id,
             'class_id' => $class->id,
@@ -217,6 +220,7 @@ public function actionAssignGrade($classId)
 
         if ($grade->save()) {
             Yii::$app->session->setFlash('success', '✅ Grade assigned successfully.');
+              Yii::$app->auditTrail->log('assign_grade', 'Updated student grade', 'Grade', $grade->id);
             return $this->redirect(['view', 'id' => $class->id]);
         } else {
             Yii::error($grade->getErrors(), 'grade_save_error');
