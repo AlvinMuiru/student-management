@@ -19,6 +19,10 @@ use yii\db\Expression;
  */
 class Grade extends ActiveRecord
 {
+    public $request_id;
+    public $request_status;
+    public $request_created_at;
+
     public static function tableName()
     {
         return 'grades';

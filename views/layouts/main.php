@@ -54,7 +54,7 @@ $bodyClass = $hideSidebar ? 'hold-transition layout-top-nav' : 'hold-transition 
     <!-- Footer -->
     <?php if (!$hideFooter): ?>
         <footer class="main-footer text-center">
-            <strong>&copy; <?= date('Y') ?> My Company.</strong> All rights reserved.
+            <strong>&copy; <?= date('Y') ?> TechBridge College.</strong> All rights reserved.
         </footer>
     <?php endif; ?>
 </div>

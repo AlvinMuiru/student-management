@@ -99,7 +99,7 @@ class TranscriptController extends Controller
             $transcriptData[$yearName][$semesterName][] = [
                 'class_name' => $className,
                 'score' => number_format($grade->score, 2),
-                'status' => $grade->score >= 50 ? 'Passed' : 'Failed',
+                'status' => $grade->score >= 40 ? 'Passed' : 'Failed',
             ];
         }
 

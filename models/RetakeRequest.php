@@ -1,5 +1,4 @@
 <?php
-
 namespace app\models;
 
 use Yii;
@@ -12,36 +11,28 @@ use Yii;
  * @property int $student_id
  * @property string|null $status
  * @property string|null $created_at
+ *
+ * @property Students $student
+ * @property Grade $grade
  */
 class RetakeRequest extends \yii\db\ActiveRecord
 {
-
-
-    /**
-     * {@inheritdoc}
-     */
     public static function tableName()
     {
         return 'retake_requests';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function rules()
     {
         return [
-            [['status'], 'default', 'value' => 'pending'],
             [['grade_id', 'student_id'], 'required'],
             [['grade_id', 'student_id'], 'integer'],
             [['created_at'], 'safe'],
             [['status'], 'string', 'max' => 255],
+            [['status'], 'default', 'value' => 'pending'],
         ];
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
@@ -52,14 +43,14 @@ class RetakeRequest extends \yii\db\ActiveRecord
             'created_at' => 'Created At',
         ];
     }
+
     public function getStudent()
-{
-    return $this->hasOne(Students::class, ['id' => 'student_id']);
-}
+    {
+        return $this->hasOne(Students::class, ['id' => 'student_id']);
+    }
 
-public function getGrade()
-{
-    return $this->hasOne(Grade::class, ['id' => 'grade_id']);
-}
-
+    public function getGrade()
+    {
+        return $this->hasOne(Grade::class, ['id' => 'grade_id'])->with('class');
+    }
 }

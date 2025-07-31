@@ -76,7 +76,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                 <td><?= Html::encode($grade->class->class_name ?? 'N/A') ?></td>
                                 <td><?= Html::encode($grade->score ?? 'Pending') ?></td>
                                 <td>
-                                    <?= $grade->score && $grade->score < 50 ? 'Failed' : ($grade->score ? 'Passed' : 'N/A') ?>
+                                    <?= $grade->score && $grade->score < 40 ? 'Failed' : ($grade->score ? 'Passed' : 'N/A') ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

@@ -42,45 +42,51 @@ class GradeController extends Controller
     ];
 }
     public function actionIndex()
-    {
-        $student = Yii::$app->user->identity->student;
+{
+    $student = Yii::$app->user->identity->student;
 
-        if (!$student) {
-            throw new NotFoundHttpException('Student profile not found.');
-        }
+    if (!$student) {
+        throw new NotFoundHttpException('Student profile not found.');
+    }
 
-        $semesters = Semester::find()
-            ->joinWith('academicYear')
-            ->orderBy(['academic_year_id' => SORT_DESC, 'start_date' => SORT_ASC])
-            ->all();
+    $semesters = Semester::find()
+        ->joinWith('academicYear')
+        ->orderBy(['academic_year_id' => SORT_DESC, 'start_date' => SORT_ASC])
+        ->all();
 
-        $semesterId = Yii::$app->request->get('semester_id');
-        $semester = $semesterId ? Semester::findOne($semesterId) : SemesterHelper::getCurrentSemester();
+    $semesterId = Yii::$app->request->get('semester_id');
+    $semester = $semesterId ? Semester::findOne($semesterId) : SemesterHelper::getCurrentSemester();
 
-        if (!$semester) {
-            Yii::$app->session->setFlash('warning', 'No active or selected semester found.');
-            return $this->render('index', [
-                'grades' => [],
-                'semesters' => $semesters,
-                'selectedSemester' => null,
-            ]);
-        }
-
-        $grades = Grade::find()
-            ->where([
-                'student_id' => $student->id,
-                'semester_id' => $semester->id,
-            ])
-            ->with(['class'])
-            ->all();
-
+    if (!$semester) {
+        Yii::$app->session->setFlash('warning', 'No active or selected semester found.');
         return $this->render('index', [
-            'grades' => $grades,
+            'grades' => [],
             'semesters' => $semesters,
-            'selectedSemester' => $semester,
-            'student' =>$student,
+            'selectedSemester' => null,
         ]);
     }
+
+    // Get latest grade per class for the student in the selected semester
+   $subQuery = (new \yii\db\Query())
+    ->select(['MAX(id)'])
+    ->from(Grade::tableName())  // ✅ Correct table name 'grades'
+    ->where([
+        'student_id' => $student->id,
+        'semester_id' => $semester->id,
+    ])
+    ->groupBy('class_id');
+
+$grades = Grade::find()
+    ->where(['id' => $subQuery])
+    ->with(['class'])
+    ->all();
+    return $this->render('index', [
+        'grades' => $grades,
+        'semesters' => $semesters,
+        'selectedSemester' => $semester,
+        'student' => $student,
+    ]);
+}
 
    public function actionAssign($studentId, $classId)
 {
@@ -142,7 +148,7 @@ class GradeController extends Controller
 
     // ✅ Handle submission
     if ($model->load(Yii::$app->request->post()) && $model->validate()) {
-        $finalScore = (0.3 * $model->cat_score) + (0.7 * $model->exam_score);
+        $finalScore =  $model->cat_score+  $model->exam_score;
 
         if (!$existingGrade) {
             $existingGrade = new \app\models\Grade();
@@ -174,35 +180,39 @@ class GradeController extends Controller
     ]);
 }
 
-    public function actionRegisterRetake($id)
-    {
-        $grade = Grade::findOne($id);
-        $studentId = Yii::$app->user->identity->student->id ?? null;
 
-        if (!$grade || $grade->student_id != $studentId) {
-            throw new NotFoundHttpException("Grade not found or unauthorized.");
-        }
+public function actionRegisterRetake($id)
+{
+    $grade = Grade::findOne($id);
 
-        $existingRequest = RetakeRequest::find()
-            ->where(['grade_id' => $id, 'student_id' => $studentId])
-            ->one();
-
-        if ($existingRequest) {
-            Yii::$app->session->setFlash('warning', 'You have already requested a retake for this class.');
-        } else {
-            $retake = new RetakeRequest();
-            $retake->grade_id = $id;
-            $retake->student_id = $studentId;
-            if ($retake->save()) {
-                Yii::$app->session->setFlash('success', 'Retake request submitted successfully.');
-            } else {
-                Yii::$app->session->setFlash('error', 'Failed to submit retake request.');
-            }
-        }
-
-        return $this->redirect(['grade/index']);
+    if (!$grade || $grade->score >= 40 || $grade->student_id != Yii::$app->user->identity->student->id) {
+        throw new \yii\web\NotFoundHttpException('Invalid request.');
     }
-   public function actionGetScores($studentId, $classId)
+
+    $existingRequest = RetakeRequest::find()
+        ->where(['grade_id' => $grade->id, 'student_id' => $grade->student_id])
+        ->one();
+
+    if ($existingRequest) {
+        Yii::$app->session->setFlash('warning', 'You have already requested a retake for this class.');
+    } else {
+        $request = new RetakeRequest();
+        $request->grade_id = $grade->id;
+        $request->student_id = $grade->student_id;
+        $request->status = 'requested';
+        $request->created_at = date('Y-m-d H:i:s');
+        if ($request->save()) {
+            Yii::$app->session->setFlash('success', 'Retake request submitted successfully.');
+        } else {
+            Yii::$app->session->setFlash('error', 'Failed to submit retake request.');
+        }
+    }
+
+    return $this->redirect(['retake-request/my-requests']);
+}
+
+
+     public function actionGetScores($studentId, $classId)
 {
     Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
