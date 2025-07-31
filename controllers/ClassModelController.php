@@ -151,6 +151,7 @@ class ClassModelController extends Controller
                 }
 
                 $transaction->commit();
+                Yii::$app->auditTrail->log('update', 'Updated class record', 'ClassModel', $model->id);
                 Yii::$app->session->setFlash('success', 'Class updated with student enrollments!');
                 return $this->redirect(['view', 'id' => $model->id]);
             } catch (\Exception $e) {
@@ -323,6 +324,7 @@ public function actionEnroll($id)
             }
 
             $transaction->commit();
+            Yii::$app->auditTrail->log('enroll', 'Enrolled students in a class ', 'ClassModel', $class->id);
             Yii::$app->session->setFlash('success', 'Students enrolled successfully.');
             return $this->redirect(['view', 'id' => $id]);
         } catch (\Exception $e) {
