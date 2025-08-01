@@ -7,6 +7,10 @@ use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use Yii;
+use app\models\ClassModel;
+use yii\helpers\VarDumper;
+
 
 /**
  * TeacherController implements the CRUD actions for Teacher model.
@@ -113,6 +117,48 @@ class TeacherController extends Controller
 
         return $this->redirect(['index']);
     }
+
+   public function actionAnalytics()
+{
+    $userId = Yii::$app->user->id;
+
+    // Get the teacher model by logged-in user ID
+    $teacher = Teacher::findOne(['user_id' => $userId]);
+
+    if (!$teacher) {
+        throw new NotFoundHttpException('Teacher profile not found.');
+    }
+
+    $classes = ClassModel::find()
+        ->where(['teacher_id' => $teacher->id])
+        ->with('grades') // ensure relation is set in ClassModel
+        ->all();
+
+    $analytics = [];
+
+    foreach ($classes as $class) {
+        $grades = $class->grades;
+        if (count($grades) === 0) {
+            continue;
+        }
+
+        $finalScores = array_map(function($grade) {
+            return $grade->cat_score + $grade->exam_score;
+        }, $grades);
+
+        $analytics[] = [
+            'className' => $class->class_name,
+            'averageScore' => round(array_sum($finalScores) / count($finalScores), 2),
+            'highestScore' => max($finalScores),
+            'lowestScore' => min($finalScores),
+        ];
+    }
+
+    return $this->render('analytics', [
+        'analytics' => $analytics,
+    ]);
+}
+
 
     /**
      * Finds the Teacher model based on its primary key value.

@@ -1,7 +1,6 @@
 <?php
 use yii\helpers\Html;
 use yii\helpers\Url;
-
 ?>
 
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -54,6 +53,9 @@ use yii\helpers\Url;
                            <i class="nav-icon fas fa-calendar-alt"></i>
                            <p>Exam Schedules</p>
                            </a>
+                        </li>
+                        <li class="nav-item">
+                          <?= Html::a('Grading Analytics', ['/teacher/analytics']) ?>
                         </li>
                     <?php elseif (Yii::$app->user->identity->role === 'admin'): ?>
                         <li class="nav-item">
